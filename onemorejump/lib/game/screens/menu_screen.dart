@@ -49,59 +49,42 @@ class MenuScreen extends StatelessWidget {
 
                         // Logo
                         Container(
-                          width: 100,
-                          height: 100,
+                          width: 200,
+                          height: 200,
                           decoration: BoxDecoration(
-                            color: GameConstants.primaryDark.withAlpha(200),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: GameConstants.gold, width: 3),
+                            borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: GameConstants.gold.withAlpha(50),
-                                blurRadius: 30,
-                                spreadRadius: 5,
+                                color: GameConstants.gold.withAlpha(60),
+                                blurRadius: 40,
+                                spreadRadius: 10,
                               ),
                             ],
                           ),
-                          child: Icon(
-                            Icons.gavel,
-                            size: 50,
-                            color: GameConstants.gold,
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Başlık
-                        Text(
-                          'GLADYATÖR',
-                          style: TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.w900,
-                            color: GameConstants.textLight,
-                            letterSpacing: 6,
-                          ),
-                        ),
-                        ShaderMask(
-                          shaderCallback: (bounds) => LinearGradient(
-                            colors: [
-                              GameConstants.gold,
-                              GameConstants.warmOrange,
-                            ],
-                          ).createShader(bounds),
-                          child: const Text(
-                            'LUDUS',
-                            style: TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: 10,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.asset(
+                              'assets/logo.jpg',
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                decoration: BoxDecoration(
+                                  color: GameConstants.primaryDark.withAlpha(200),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: GameConstants.gold, width: 3),
+                                ),
+                                child: Icon(
+                                  Icons.gavel,
+                                  size: 80,
+                                  color: GameConstants.gold,
+                                ),
+                              ),
                             ),
                           ),
                         ),
 
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 30),
 
+                        // Alt yazı
                         Text(
                           'Kendi gladyatör okulunu yönet',
                           style: TextStyle(
