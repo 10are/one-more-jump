@@ -1,10 +1,11 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../gladiator_game.dart';
 import '../constants.dart';
+import '../models/gladiator.dart';
+import 'fight_screen.dart';
 
 class ColosseumScreen extends StatefulWidget {
   const ColosseumScreen({super.key});
@@ -508,9 +509,7 @@ class _ColosseumFighterCard extends StatelessWidget {
     final availableGladiators = game.state.availableForFight;
 
     if (availableGladiators.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: const Text('Savaşabilecek gladyatör yok!'), backgroundColor: GameConstants.danger),
-      );
+      _showCustomPopup(context, 'UYARI', 'Savaşabilecek gladyatör yok!', false);
       return;
     }
 
@@ -522,6 +521,43 @@ class _ColosseumFighterCard extends StatelessWidget {
         fighter: fighter,
         game: game,
         availableGladiators: availableGladiators,
+      ),
+    );
+  }
+
+  void _showCustomPopup(BuildContext context, String title, String message, bool success) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => Center(
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 50),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: GameConstants.primaryDark,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: success ? GameConstants.gold : GameConstants.danger, width: 2),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(success ? Icons.check_circle : Icons.error, color: success ? GameConstants.gold : GameConstants.danger, size: 40),
+              const SizedBox(height: 8),
+              Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: success ? GameConstants.gold : GameConstants.danger)),
+              const SizedBox(height: 4),
+              Text(message, style: TextStyle(fontSize: 12, color: GameConstants.textLight), textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => Navigator.pop(ctx),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  decoration: BoxDecoration(color: success ? GameConstants.gold : GameConstants.danger, borderRadius: BorderRadius.circular(6)),
+                  child: Text('TAMAM', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black)),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -691,73 +727,43 @@ class _ColosseumGladiatorSelectionSheetState extends State<_ColosseumGladiatorSe
   }
 
   void _startColosseumFight(BuildContext context, String gladiatorId) {
-    final gladiator = widget.game.state.gladiators.firstWhere((g) => g.id == gladiatorId);
-    final enemyStrength = widget.fighter['strength'] ?? 50;
-    final reward = widget.fighter['reward'] ?? 0;
-    final reputationReward = widget.fighter['reputation_reward'] ?? 0;
+    final gladiator = widget.availableGladiators.firstWhere((g) => g.id == gladiatorId) as Gladiator;
+    final reward = widget.fighter['reward'] ?? 500;
+    final reputationReward = widget.fighter['reputation_reward'] ?? 50;
 
-    // Savaş simülasyonu
-    final random = Random();
-    final gladiatorRoll = gladiator.overallPower + random.nextInt(30);
-    final enemyRoll = enemyStrength + random.nextInt(30);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FightScreen(
+          player: gladiator,
+          enemyName: widget.fighter['name'] ?? 'Şampiyon',
+          enemyTitle: widget.fighter['title'] ?? 'Colosseum Savaşçısı',
+          enemyImage: widget.fighter['image'],
+          enemyHealth: widget.fighter['health'] ?? 80,
+          enemyStrength: widget.fighter['strength'] ?? 70,
+          enemyIntelligence: widget.fighter['intelligence'] ?? 60,
+          enemyStamina: widget.fighter['stamina'] ?? 70,
+          goldReward: reward,
+          reputationReward: reputationReward,
+          fightType: 'colosseum',
+          onFightEnd: (outcome) {
+            // Sonuçları uygula
+            if (outcome.playerWon) {
+              widget.game.state.modifyGold(outcome.goldReward);
+              widget.game.state.modifyReputation(outcome.reputationReward);
+            }
 
-    final won = gladiatorRoll > enemyRoll;
-    final damage = won ? 15 + random.nextInt(20) : 30 + random.nextInt(30);
+            // Hasar uygula
+            gladiator.takeDamage(outcome.playerDamage);
 
-    gladiator.recordFight(won, damage);
+            // Ölüm kontrolü
+            if (outcome.playerDied) {
+              widget.game.state.gladiators.remove(gladiator);
+            }
 
-    if (won) {
-      widget.game.state.modifyGold(reward);
-      widget.game.state.modifyReputation(reputationReward);
-    }
-
-    // Sonuç dialogu
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: GameConstants.primaryDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              won ? Icons.emoji_events : Icons.heart_broken,
-              color: won ? GameConstants.gold : GameConstants.danger,
-              size: 60,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              won ? 'ZAFER!' : 'YENİLGİ',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: won ? GameConstants.gold : GameConstants.danger,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              won
-                  ? '${gladiator.name}, ${widget.fighter['name']} karşısında zafer kazandı!\n\n+$reward Altın\n+$reputationReward İtibar'
-                  : '${gladiator.name}, ${widget.fighter['name']} karşısında yenildi.\n\nHasar: $damage',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: GameConstants.textLight, fontSize: 14),
-            ),
-          ],
+            widget.game.refreshState();
+          },
         ),
-        actions: [
-          Center(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: won ? GameConstants.gold : GameConstants.danger,
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Tamam', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-            ),
-          ),
-        ],
       ),
     );
   }

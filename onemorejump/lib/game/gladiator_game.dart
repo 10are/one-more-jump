@@ -8,6 +8,11 @@ class GladiatorGame extends ChangeNotifier {
   GameState state = GameState();
   final Random _random = Random();
 
+  // State yenile (UI güncellemesi için)
+  void refreshState() {
+    notifyListeners();
+  }
+
   // Oyunu başlat
   void startGame() {
     state.reset();

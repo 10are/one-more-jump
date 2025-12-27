@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../gladiator_game.dart';
 import '../constants.dart';
+import '../models/gladiator.dart';
+import 'fight_screen.dart';
 
 class FightSelectionScreen extends StatefulWidget {
   final bool isArena;
@@ -641,52 +643,42 @@ class _GladiatorSelectionSheetState extends State<_GladiatorSelectionSheet> {
   }
 
   void _startArenaFight(BuildContext context, String gladiatorId) {
+    final gladiator = widget.availableGladiators.firstWhere((g) => g.id == gladiatorId) as Gladiator;
     final reward = widget.fighter['reward'] ?? 0;
     final reputationReward = widget.fighter['reputation_reward'] ?? 0;
 
-    // TODO: Gerçek dövüş mekaniği
-    final won = true;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FightScreen(
+          player: gladiator,
+          enemyName: widget.fighter['name'] ?? 'Rakip',
+          enemyTitle: widget.fighter['title'] ?? '',
+          enemyImage: widget.fighter['image'],
+          enemyHealth: widget.fighter['health'] ?? 50,
+          enemyStrength: widget.fighter['strength'] ?? 50,
+          enemyIntelligence: widget.fighter['intelligence'] ?? 50,
+          enemyStamina: widget.fighter['stamina'] ?? 50,
+          goldReward: reward,
+          reputationReward: reputationReward,
+          fightType: 'arena',
+          onFightEnd: (outcome) {
+            // Sonuçları uygula
+            if (outcome.playerWon) {
+              widget.game.state.modifyGold(outcome.goldReward);
+              widget.game.state.modifyReputation(outcome.reputationReward);
+            }
 
-    if (won) {
-      widget.game.state.modifyGold(reward);
-      widget.game.state.modifyReputation(reputationReward);
-    }
+            // Hasar uygula
+            gladiator.takeDamage(outcome.playerDamage);
 
-    _showCustomPopup(context, 'ARENA', 'Arena savaşı başlıyor!', true);
-  }
+            // Ölüm kontrolü
+            if (outcome.playerDied) {
+              widget.game.state.gladiators.remove(gladiator);
+            }
 
-  void _showCustomPopup(BuildContext context, String title, String message, bool success) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (ctx) => Center(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 50),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: GameConstants.primaryDark,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: success ? GameConstants.gold : GameConstants.danger, width: 2),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(success ? Icons.check_circle : Icons.error, color: success ? GameConstants.gold : GameConstants.danger, size: 40),
-              const SizedBox(height: 8),
-              Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: success ? GameConstants.gold : GameConstants.danger)),
-              const SizedBox(height: 4),
-              Text(message, style: TextStyle(fontSize: 12, color: GameConstants.textLight), textAlign: TextAlign.center),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => Navigator.pop(ctx),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                  decoration: BoxDecoration(color: success ? GameConstants.gold : GameConstants.danger, borderRadius: BorderRadius.circular(6)),
-                  child: Text('TAMAM', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black)),
-                ),
-              ),
-            ],
-          ),
+            widget.game.refreshState();
+          },
         ),
       ),
     );
@@ -870,7 +862,7 @@ class _BetSelectionSheetState extends State<_BetSelectionSheet> {
               onPressed: selectedGladiatorId != null
                   ? () {
                       Navigator.pop(context);
-                      _startFightWithBet(context, selectedGladiatorId!, betAmount);
+                      _startUndergroundFight(context, selectedGladiatorId!, betAmount);
                     }
                   : null,
               style: ElevatedButton.styleFrom(
@@ -890,53 +882,50 @@ class _BetSelectionSheetState extends State<_BetSelectionSheet> {
     );
   }
 
-  void _startFightWithBet(BuildContext context, String gladiatorId, int bet) {
+  void _startUndergroundFight(BuildContext context, String gladiatorId, int bet) {
+    final gladiator = widget.availableGladiators.firstWhere((g) => g.id == gladiatorId) as Gladiator;
+    final reward = widget.fighter['reward'] ?? 100;
+
+    // Bahis miktarını düş
     if (bet > 0) {
       widget.game.state.modifyGold(-bet);
     }
 
-    // TODO: Gerçek dövüş mekaniği
-    final won = true;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FightScreen(
+          player: gladiator,
+          enemyName: widget.fighter['name'] ?? 'Rakip',
+          enemyTitle: widget.fighter['title'] ?? 'Yeraltı Savaşçısı',
+          enemyImage: widget.fighter['image'],
+          enemyHealth: widget.fighter['health'] ?? 50,
+          enemyStrength: widget.fighter['strength'] ?? 50,
+          enemyIntelligence: widget.fighter['intelligence'] ?? 50,
+          enemyStamina: widget.fighter['stamina'] ?? 50,
+          goldReward: reward + bet, // Bahis + ödül
+          reputationReward: 0, // Yeraltı'da itibar yok
+          fightType: 'underground',
+          onFightEnd: (outcome) {
+            // Sonuçları uygula
+            if (outcome.playerWon) {
+              widget.game.state.modifyGold(outcome.goldReward);
+              // Bahis kazanıldıysa 2x ver
+              if (bet > 0) {
+                widget.game.state.modifyGold(bet); // Bahis geri + kar
+              }
+            }
 
-    if (won && bet > 0) {
-      widget.game.state.modifyGold(bet * 2);
-    }
+            // Hasar uygula
+            gladiator.takeDamage(outcome.playerDamage);
 
-    _showCustomPopup(context, 'YERALTI', bet > 0 ? 'Savaş başlıyor! Bahis: $bet' : 'Savaş başlıyor!', true);
-  }
+            // Ölüm kontrolü
+            if (outcome.playerDied) {
+              widget.game.state.gladiators.remove(gladiator);
+            }
 
-  void _showCustomPopup(BuildContext context, String title, String message, bool success) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (ctx) => Center(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 50),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: GameConstants.primaryDark,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: success ? GameConstants.gold : GameConstants.danger, width: 2),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(success ? Icons.check_circle : Icons.error, color: success ? GameConstants.gold : GameConstants.danger, size: 40),
-              const SizedBox(height: 8),
-              Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: success ? GameConstants.gold : GameConstants.danger)),
-              const SizedBox(height: 4),
-              Text(message, style: TextStyle(fontSize: 12, color: GameConstants.textLight), textAlign: TextAlign.center),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => Navigator.pop(ctx),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                  decoration: BoxDecoration(color: success ? GameConstants.gold : GameConstants.danger, borderRadius: BorderRadius.circular(6)),
-                  child: Text('TAMAM', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black)),
-                ),
-              ),
-            ],
-          ),
+            widget.game.refreshState();
+          },
         ),
       ),
     );
