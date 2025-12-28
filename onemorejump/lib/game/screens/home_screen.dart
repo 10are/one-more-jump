@@ -121,9 +121,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       top: 90,
                       left: 20,
                       child: _CornerIcon(
-                        icon: Icons.sports_mma,
                         label: 'Arena',
                         color: GameConstants.bloodRed,
+                        imagePath: 'assets/arena.png',
                         onTap: () => _navigateTo(context, game, const ArenaScreen()),
                       ),
                     ),
@@ -133,9 +133,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       top: 90,
                       right: 20,
                       child: _CornerIcon(
-                        icon: Icons.handshake,
                         label: 'Diplomasi',
                         color: GameConstants.bronze,
+                        imagePath: 'assets/diplomasi.jpg',
                         onTap: () => _navigateTo(context, game, const DiplomacyScreen()),
                       ),
                     ),
@@ -145,9 +145,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       bottom: 100,
                       left: 20,
                       child: _CornerIcon(
-                        icon: Icons.storefront,
                         label: 'Pazar',
                         color: GameConstants.gold,
+                        imagePath: 'assets/pazar.png',
                         onTap: () => _navigateTo(context, game, const MarketScreen()),
                       ),
                     ),
@@ -159,9 +159,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       right: 0,
                       child: Center(
                         child: _CornerIcon(
-                          icon: Icons.casino,
                           label: 'Kumar',
                           color: const Color(0xFF9C27B0),
+                          imagePath: 'assets/21.jpg',
                           onTap: () => _navigateTo(context, game, const GamblingScreen()),
                         ),
                       ),
@@ -172,9 +172,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       bottom: 100,
                       right: 20,
                       child: _CornerIcon(
-                        icon: Icons.school,
                         label: 'Ludus',
                         color: GameConstants.copper,
+                        imagePath: 'assets/okul.jpg',
                         onTap: () => _navigateTo(context, game, const SchoolScreen()),
                       ),
                     ),
@@ -778,18 +778,18 @@ class _ExpenseRow extends StatelessWidget {
   }
 }
 
-// Köşe ikonu - BÜYÜTÜLDÜ
+// Köşe ikonu - Sadece görsel
 class _CornerIcon extends StatelessWidget {
-  final IconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
+  final String imagePath;
 
   const _CornerIcon({
-    required this.icon,
     required this.label,
     required this.color,
     required this.onTap,
+    required this.imagePath,
   });
 
   @override
@@ -800,26 +800,45 @@ class _CornerIcon extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(18),
+            width: 72,
+            height: 72,
             decoration: BoxDecoration(
-              color: GameConstants.primaryDark.withAlpha(220),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: color.withAlpha(120), width: 2),
+              border: Border.all(color: color.withAlpha(150), width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: color.withAlpha(40),
+                  color: color.withAlpha(50),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
-            child: Icon(icon, size: 38, color: color),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Image.asset(
+                imagePath,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: GameConstants.primaryDark,
+                  child: Center(
+                    child: Text(
+                      label[0],
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             label,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: FontWeight.bold,
               color: GameConstants.textLight,
               shadows: [
