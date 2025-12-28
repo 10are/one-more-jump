@@ -596,6 +596,7 @@ class _ColosseumGladiatorSelectionSheetState extends State<_ColosseumGladiatorSe
   Widget build(BuildContext context) {
     final reward = widget.fighter['reward'] ?? 0;
     final reputationReward = widget.fighter['reputation_reward'] ?? 0;
+    final accentColor = GameConstants.gold;
 
     // Diyalog gosteriliyor mu?
     if (showDialogue && selectedGladiatorId != null) {
@@ -603,66 +604,101 @@ class _ColosseumGladiatorSelectionSheetState extends State<_ColosseumGladiatorSe
     }
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.55,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       decoration: BoxDecoration(
         color: GameConstants.primaryDark,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        border: Border.all(color: GameConstants.gold.withAlpha(60)),
+        border: Border.all(color: accentColor.withAlpha(60)),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Baslik
-          Text(
-            '${widget.fighter['name']}',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GameConstants.gold),
-          ),
-          Text(
-            widget.fighter['title'] ?? '',
-            style: TextStyle(fontSize: 11, color: GameConstants.textMuted),
-          ),
-
-          const SizedBox(height: 12),
-
-          // Odul bilgisi
+          // Handle bar
           Container(
-            padding: const EdgeInsets.all(12),
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
-              color: GameConstants.cardBg,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: GameConstants.gold.withAlpha(40)),
+              color: GameConstants.textMuted.withAlpha(100),
+              borderRadius: BorderRadius.circular(2),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Column(
+          ),
+
+          // Baslik ve odul satiri - kompakt
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.paid, color: GameConstants.gold, size: 20),
-                    const SizedBox(height: 4),
-                    Text('$reward', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: GameConstants.gold)),
-                    Text('Altin', style: TextStyle(fontSize: 10, color: GameConstants.textMuted)),
+                    Text(
+                      '${widget.fighter['name']}',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: accentColor),
+                    ),
+                    Text(
+                      widget.fighter['title'] ?? '',
+                      style: TextStyle(fontSize: 10, color: GameConstants.textMuted),
+                    ),
                   ],
                 ),
-                Container(width: 1, height: 40, color: GameConstants.cardBorder),
-                Column(
-                  children: [
-                    Icon(Icons.star, color: GameConstants.warmOrange, size: 20),
-                    const SizedBox(height: 4),
-                    Text('+$reputationReward', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: GameConstants.warmOrange)),
-                    Text('Itibar', style: TextStyle(fontSize: 10, color: GameConstants.textMuted)),
-                  ],
-                ),
-              ],
-            ),
+              ),
+              // Oduller - kompakt
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: GameConstants.gold.withAlpha(30),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.paid, color: GameConstants.gold, size: 14),
+                        const SizedBox(width: 4),
+                        Text('$reward', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: GameConstants.gold)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: GameConstants.warmOrange.withAlpha(30),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.star, color: GameConstants.warmOrange, size: 14),
+                        const SizedBox(width: 4),
+                        Text('+$reputationReward', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: GameConstants.warmOrange)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
 
           const SizedBox(height: 12),
 
-          Text('SAVASCI SEC', style: TextStyle(fontSize: 11, color: GameConstants.textMuted, letterSpacing: 1)),
-          const SizedBox(height: 6),
+          // Ayirici
+          Container(
+            height: 1,
+            color: GameConstants.cardBorder.withAlpha(50),
+          ),
 
-          Expanded(
+          const SizedBox(height: 12),
+
+          Text('SAVASCI SEC', style: TextStyle(fontSize: 10, color: GameConstants.textMuted, letterSpacing: 1)),
+          const SizedBox(height: 8),
+
+          // Gladyator kartlari - yatay kaydirmali
+          SizedBox(
+            height: 160,
             child: ListView.builder(
+              scrollDirection: Axis.horizontal,
               itemCount: widget.availableGladiators.length,
               itemBuilder: (context, index) {
                 final g = widget.availableGladiators[index];
@@ -671,59 +707,151 @@ class _ColosseumGladiatorSelectionSheetState extends State<_ColosseumGladiatorSe
                 return GestureDetector(
                   onTap: () => setState(() => selectedGladiatorId = g.id),
                   child: Container(
-                    margin: const EdgeInsets.only(bottom: 6),
-                    padding: const EdgeInsets.all(10),
+                    width: 110,
+                    margin: EdgeInsets.only(
+                      left: index == 0 ? 0 : 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: isSelected ? GameConstants.gold.withAlpha(30) : GameConstants.cardBg,
-                      borderRadius: BorderRadius.circular(10),
+                      color: isSelected ? accentColor.withAlpha(40) : Colors.black.withAlpha(150),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isSelected ? GameConstants.gold : GameConstants.cardBorder,
+                        color: isSelected ? accentColor : GameConstants.cardBorder,
                         width: isSelected ? 2 : 1,
                       ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: accentColor.withAlpha(50),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : null,
                     ),
-                    child: Row(
-                      children: [
-                        // Gladyator gorseli
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: GameConstants.gold.withAlpha(100)),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(7),
-                            child: g.imagePath != null
-                                ? Image.asset(
-                                    g.imagePath!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Container(
-                                      color: GameConstants.bloodRed.withAlpha(50),
-                                      child: Center(
-                                        child: Text(g.name[0], style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GameConstants.bloodRed)),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Column(
+                        children: [
+                          // Gladyator gorseli
+                          Expanded(
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                g.imagePath != null
+                                    ? Image.asset(
+                                        g.imagePath!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => _buildPlaceholder(g, accentColor),
+                                      )
+                                    : _buildPlaceholder(g, accentColor),
+
+                                // Gradient overlay
+                                Positioned(
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  height: 30,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.transparent,
+                                          Colors.black.withAlpha(200),
+                                        ],
                                       ),
                                     ),
-                                  )
-                                : Container(
-                                    color: GameConstants.bloodRed.withAlpha(50),
-                                    child: Center(
-                                      child: Text(g.name[0], style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GameConstants.bloodRed)),
+                                  ),
+                                ),
+
+                                // Secili badge
+                                if (isSelected)
+                                  Positioned(
+                                    top: 4,
+                                    right: 4,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(3),
+                                      decoration: BoxDecoration(
+                                        color: accentColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(Icons.check, size: 12, color: Colors.black),
                                     ),
                                   ),
+
+                                // HP ve Guc - altta
+                                Positioned(
+                                  bottom: 4,
+                                  left: 4,
+                                  right: 4,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      // HP
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withAlpha(150),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.favorite, size: 8, color: _getHealthColor(g.health)),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              '${g.health}',
+                                              style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: _getHealthColor(g.health)),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      // Guc
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withAlpha(150),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.flash_on, size: 8, color: accentColor),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              '${g.overallPower}',
+                                              style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: accentColor),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(g.name, style: TextStyle(color: GameConstants.textLight, fontWeight: FontWeight.bold, fontSize: 13)),
-                              Text('Guc: ${g.overallPower} | HP: ${g.health}%', style: TextStyle(color: GameConstants.textMuted, fontSize: 10)),
-                            ],
+
+                          // Isim - altta
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                            color: Colors.black.withAlpha(80),
+                            child: Text(
+                              g.name,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: isSelected ? accentColor : GameConstants.textLight,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
                           ),
-                        ),
-                        if (isSelected) Icon(Icons.check_circle, color: GameConstants.gold, size: 20),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -731,33 +859,55 @@ class _ColosseumGladiatorSelectionSheetState extends State<_ColosseumGladiatorSe
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
+          // Buton
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: selectedGladiatorId != null
                   ? () {
-                      // Diyalogu goster
                       currentDialogue = PreFightDialogueHelper.getRandomDialogue();
                       setState(() => showDialogue = true);
                     }
                   : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: GameConstants.gold,
+                backgroundColor: accentColor,
                 disabledBackgroundColor: GameConstants.cardBorder,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               child: const Text(
                 'COLOSSEUM\'A GIR',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black),
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildPlaceholder(dynamic g, Color accentColor) {
+    return Container(
+      color: accentColor.withAlpha(30),
+      child: Center(
+        child: Text(
+          g.name[0],
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: accentColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _getHealthColor(int health) {
+    if (health > 50) return GameConstants.success;
+    if (health > 25) return GameConstants.gold;
+    return GameConstants.danger;
   }
 
   Widget _buildDialogueView(BuildContext context) {

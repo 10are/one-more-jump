@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../constants.dart';
 import '../models/gladiator.dart';
 
-// Dövüş sonucu
+// Dovus sonucu
 class FightOutcome {
   final bool playerWon;
   final int playerDamage;
@@ -12,6 +14,10 @@ class FightOutcome {
   final bool enemyDied;
   final int goldReward;
   final int reputationReward;
+  final int playerRoll;
+  final int enemyRoll;
+  final bool playerCritical;
+  final bool enemyCritical;
 
   FightOutcome({
     required this.playerWon,
@@ -21,10 +27,14 @@ class FightOutcome {
     required this.enemyDied,
     required this.goldReward,
     required this.reputationReward,
+    required this.playerRoll,
+    required this.enemyRoll,
+    required this.playerCritical,
+    required this.enemyCritical,
   });
 }
 
-// Dövüş hesaplama
+// Dovus hesaplama
 class FightCalculator {
   static final Random _random = Random();
 
@@ -36,7 +46,7 @@ class FightCalculator {
     required int enemyStamina,
     required int goldReward,
     required int reputationReward,
-    int moraleBonus = 0, // Moral bonusu (-4 ile +2 arası)
+    int moraleBonus = 0,
   }) {
     final playerTotalStats = player.health + player.strength + player.intelligence + player.stamina;
     final enemyTotalStats = enemyHealth + enemyStrength + enemyIntelligence + enemyStamina;
@@ -56,7 +66,6 @@ class FightCalculator {
     final playerCritical = playerRoll == 10;
     final enemyCritical = enemyRoll == 10;
 
-    // Moral bonusu uygula
     final playerTotal = playerRoll + playerBonus + moraleBonus;
     final enemyTotal = enemyRoll + enemyBonus;
 
@@ -101,11 +110,52 @@ class FightCalculator {
       enemyDied: enemyDied,
       goldReward: playerWon ? goldReward : 0,
       reputationReward: playerWon ? reputationReward : 0,
+      playerRoll: playerRoll,
+      enemyRoll: enemyRoll,
+      playerCritical: playerCritical,
+      enemyCritical: enemyCritical,
     );
   }
 }
 
-// Dövüş Ekranı
+// Spiker yorumlari
+class FightCommentary {
+  static Map<String, dynamic>? _data;
+  static final Random _random = Random();
+
+  static Future<void> load() async {
+    if (_data != null) return;
+    try {
+      final jsonString = await rootBundle.loadString('assets/data/fight_commentary.json');
+      _data = json.decode(jsonString);
+    } catch (e) {
+      _data = {};
+    }
+  }
+
+  static String _get(String key, String player, String enemy) {
+    if (_data == null || !_data!.containsKey(key)) return '';
+    final list = List<String>.from(_data![key]);
+    if (list.isEmpty) return '';
+    final text = list[_random.nextInt(list.length)];
+    return text.replaceAll('{player}', player).replaceAll('{enemy}', enemy);
+  }
+
+  static String fightStart(String player, String enemy) => _get('fight_start', player, enemy);
+  static String playerAttack(String player, String enemy) => _get('round_player_attack', player, enemy);
+  static String enemyAttack(String player, String enemy) => _get('round_enemy_attack', player, enemy);
+  static String playerHit(String player, String enemy) => _get('player_hit', player, enemy);
+  static String enemyHit(String player, String enemy) => _get('enemy_hit', player, enemy);
+  static String criticalPlayer(String player, String enemy) => _get('critical_player', player, enemy);
+  static String criticalEnemy(String player, String enemy) => _get('critical_enemy', player, enemy);
+  static String tension(String player, String enemy) => _get('tension', player, enemy);
+  static String finishPlayerWin(String player, String enemy) => _get('finish_player_win', player, enemy);
+  static String finishPlayerLose(String player, String enemy) => _get('finish_player_lose', player, enemy);
+  static String finishPlayerDeath(String player, String enemy) => _get('finish_player_death', player, enemy);
+  static String finishEnemyDeath(String player, String enemy) => _get('finish_enemy_death', player, enemy);
+}
+
+// Dovus Ekrani - Sinematik
 class FightScreen extends StatefulWidget {
   final Gladiator player;
   final String enemyName;
@@ -119,7 +169,7 @@ class FightScreen extends StatefulWidget {
   final int reputationReward;
   final String fightType;
   final Function(FightOutcome) onFightEnd;
-  final int moraleBonus; // Savaş öncesi diyalogdan gelen moral bonusu
+  final int moraleBonus;
 
   const FightScreen({
     super.key,
@@ -142,18 +192,60 @@ class FightScreen extends StatefulWidget {
   State<FightScreen> createState() => _FightScreenState();
 }
 
-class _FightScreenState extends State<FightScreen> {
-  bool _showResult = false;
+class _FightScreenState extends State<FightScreen> with TickerProviderStateMixin {
   FightOutcome? _outcome;
+  List<String> _commentary = [];
+  int _currentLine = 0;
+  bool _showResult = false;
+  bool _isLoading = true;
+  String _currentText = '';
+
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
+
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeIn),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
+
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+    );
+
     _startFight();
   }
 
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _slideController.dispose();
+    super.dispose();
+  }
+
   void _startFight() async {
-    // Hesapla
+    await FightCommentary.load();
+
     _outcome = FightCalculator.calculate(
       player: widget.player,
       enemyHealth: widget.enemyHealth,
@@ -165,11 +257,92 @@ class _FightScreenState extends State<FightScreen> {
       moraleBonus: widget.moraleBonus,
     );
 
-    // 2 saniye bekle
-    await Future.delayed(const Duration(seconds: 2));
+    _buildCommentary();
+
+    setState(() => _isLoading = false);
+
+    await _playCommentary();
+  }
+
+  void _buildCommentary() {
+    final player = widget.player.name;
+    final enemy = widget.enemyName;
+    final outcome = _outcome!;
+
+    _commentary = [];
+
+    _commentary.add(FightCommentary.fightStart(player, enemy));
+    _commentary.add(FightCommentary.playerAttack(player, enemy));
+    _commentary.add(FightCommentary.enemyAttack(player, enemy));
+
+    if (outcome.playerCritical) {
+      _commentary.add(FightCommentary.criticalPlayer(player, enemy));
+    } else if (outcome.enemyCritical) {
+      _commentary.add(FightCommentary.criticalEnemy(player, enemy));
+    }
+
+    if (outcome.playerWon) {
+      _commentary.add(FightCommentary.enemyHit(player, enemy));
+    } else {
+      _commentary.add(FightCommentary.playerHit(player, enemy));
+    }
+
+    _commentary.add(FightCommentary.tension(player, enemy));
+
+    if (outcome.playerDied) {
+      _commentary.add(FightCommentary.finishPlayerDeath(player, enemy));
+    } else if (outcome.enemyDied) {
+      _commentary.add(FightCommentary.finishEnemyDeath(player, enemy));
+    } else if (outcome.playerWon) {
+      _commentary.add(FightCommentary.finishPlayerWin(player, enemy));
+    } else {
+      _commentary.add(FightCommentary.finishPlayerLose(player, enemy));
+    }
+  }
+
+  Future<void> _playCommentary() async {
+    for (int i = 0; i < _commentary.length; i++) {
+      if (!mounted) return;
+
+      setState(() {
+        _currentLine = i;
+        _currentText = _commentary[i];
+      });
+
+      // Reset ve baslat
+      _fadeController.reset();
+      _slideController.reset();
+      _fadeController.forward();
+      _slideController.forward();
+
+      // Gosterim suresi - son cumle daha uzun
+      final duration = i == _commentary.length - 1 ? 2500 : 1800;
+      await Future.delayed(Duration(milliseconds: duration));
+
+      // Fade out
+      if (mounted && i < _commentary.length - 1) {
+        await _fadeController.reverse();
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
+    }
+
+    await Future.delayed(const Duration(milliseconds: 500));
 
     if (mounted) {
       setState(() => _showResult = true);
+    }
+  }
+
+  String get _backgroundImage {
+    switch (widget.fightType) {
+      case 'arena':
+        return 'assets/arena.png';
+      case 'underground':
+        return 'assets/yeralti.png';
+      case 'colosseum':
+        return 'assets/buyukarena.jpg';
+      default:
+        return 'assets/arena.png';
     }
   }
 
@@ -190,35 +363,226 @@ class _FightScreenState extends State<FightScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: _showResult ? _buildResultScene() : _buildLoadingScene(),
+      body: _isLoading
+          ? _buildLoadingScene()
+          : (_showResult ? _buildResultScene() : _buildCinematicScene()),
     );
   }
 
   Widget _buildLoadingScene() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'DÖVÜŞ',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: _accentColor,
-              letterSpacing: 8,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Arka plan
+        Image.asset(
+          _backgroundImage,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(color: Colors.black),
+        ),
+        // Karanlik overlay
+        Container(color: Colors.black.withAlpha(180)),
+        // Loading
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.sports_mma, size: 50, color: _accentColor.withAlpha(150)),
+              const SizedBox(height: 16),
+              Text(
+                'HAZIRLANIYOR...',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _accentColor,
+                  letterSpacing: 4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCinematicScene() {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Arka plan gorseli - TAM EKRAN
+        Image.asset(
+          _backgroundImage,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [_accentColor.withAlpha(60), Colors.black],
+              ),
             ),
           ),
-          const SizedBox(height: 30),
-          SizedBox(
-            width: 40,
-            height: 40,
-            child: CircularProgressIndicator(
-              color: _accentColor,
-              strokeWidth: 3,
+        ),
+
+        // Ust gradient - metin okunabilir olsun
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 200,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withAlpha(200),
+                  Colors.transparent,
+                ],
+              ),
             ),
           ),
-        ],
-      ),
+        ),
+
+        // Alt gradient
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 300,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [
+                  Colors.black.withAlpha(230),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        // Sinematik metin - ortada
+        SafeArea(
+          child: Column(
+            children: [
+              const Spacer(flex: 2),
+
+              // Ana metin alani
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withAlpha(150),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: _accentColor.withAlpha(60),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          _currentText,
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.white,
+                            height: 1.6,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.5,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black,
+                                blurRadius: 10,
+                              ),
+                              Shadow(
+                                color: _accentColor.withAlpha(100),
+                                blurRadius: 20,
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              const Spacer(flex: 3),
+
+              // Alt bilgi - zar sonuclari
+              if (_outcome != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 40),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildDiceDisplay(widget.player.name, _outcome!.playerRoll, _outcome!.playerCritical, true),
+                      const SizedBox(width: 30),
+                      Text(
+                        'VS',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: _accentColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+                      _buildDiceDisplay(widget.enemyName, _outcome!.enemyRoll, _outcome!.enemyCritical, false),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDiceDisplay(String name, int roll, bool isCritical, bool isPlayer) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: isCritical ? _accentColor : Colors.black.withAlpha(180),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isCritical ? _accentColor : _accentColor.withAlpha(100),
+              width: 2,
+            ),
+            boxShadow: isCritical
+                ? [BoxShadow(color: _accentColor.withAlpha(100), blurRadius: 12)]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              '$roll',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: isCritical ? Colors.black : Colors.white,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          name.length > 8 ? '${name.substring(0, 8)}...' : name,
+          style: TextStyle(
+            fontSize: 10,
+            color: Colors.white.withAlpha(180),
+          ),
+        ),
+      ],
     );
   }
 
@@ -245,7 +609,7 @@ class _FightScreenState extends State<FightScreen> {
           children: [
             const SizedBox(height: 40),
 
-            // Sonuç başlığı
+            // Sonuc basligi
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
               decoration: BoxDecoration(
@@ -257,7 +621,7 @@ class _FightScreenState extends State<FightScreen> {
                 ),
               ),
               child: Text(
-                won ? 'ZAFER!' : 'YENİLGİ!',
+                won ? 'ZAFER!' : 'YENILGI!',
                 style: TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
@@ -269,7 +633,7 @@ class _FightScreenState extends State<FightScreen> {
 
             const SizedBox(height: 30),
 
-            // Kazanan dövüşçü
+            // Kazanan
             Container(
               width: 140,
               height: 140,
@@ -289,12 +653,17 @@ class _FightScreenState extends State<FightScreen> {
               ),
               child: ClipOval(
                 child: Image.asset(
-                  won ? 'assets/defaultasker.png' : (widget.enemyImage ?? 'assets/defaultasker.png'),
+                  won
+                      ? (widget.player.imagePath ?? 'assets/defaultasker.png')
+                      : (widget.enemyImage ?? 'assets/defaultasker.png'),
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Icon(
-                    Icons.person,
-                    size: 60,
-                    color: won ? GameConstants.success : GameConstants.danger,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: (won ? GameConstants.success : GameConstants.danger).withAlpha(40),
+                    child: Icon(
+                      Icons.person,
+                      size: 60,
+                      color: won ? GameConstants.success : GameConstants.danger,
+                    ),
                   ),
                 ),
               ),
@@ -358,7 +727,6 @@ class _FightScreenState extends State<FightScreen> {
                     ],
                   ),
 
-                  // Ödüller
                   if (won && (outcome.goldReward > 0 || outcome.reputationReward > 0)) ...[
                     const SizedBox(height: 16),
                     Divider(color: _accentColor.withAlpha(50)),
@@ -377,7 +745,6 @@ class _FightScreenState extends State<FightScreen> {
               ),
             ),
 
-            // Gladyatör öldü uyarısı
             if (playerDied) ...[
               const SizedBox(height: 20),
               Container(
@@ -393,7 +760,7 @@ class _FightScreenState extends State<FightScreen> {
                     Icon(Icons.dangerous, color: GameConstants.danger, size: 50),
                     const SizedBox(height: 12),
                     Text(
-                      'GLADYATÖR KAYBI',
+                      'GLADYATOR KAYBI',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -403,19 +770,10 @@ class _FightScreenState extends State<FightScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${widget.player.name} arenada hayatını kaybetti!',
+                      '${widget.player.name} arenada hayatini kaybetti!',
                       style: TextStyle(
                         fontSize: 14,
                         color: GameConstants.textLight,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Bu gladyatör artık kullanılamaz.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: GameConstants.textMuted,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -426,7 +784,6 @@ class _FightScreenState extends State<FightScreen> {
 
             const Spacer(),
 
-            // Devam butonu
             Padding(
               padding: const EdgeInsets.all(24),
               child: SizedBox(
@@ -479,7 +836,7 @@ class _FightScreenState extends State<FightScreen> {
               Icon(Icons.dangerous, color: GameConstants.danger, size: 32),
               const SizedBox(height: 4),
               Text(
-                'ÖLDÜ',
+                'OLDU',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

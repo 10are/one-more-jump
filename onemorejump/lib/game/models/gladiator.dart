@@ -145,6 +145,7 @@ List<Gladiator> createStartingGladiators() {
     Gladiator(
       id: 'glad_1',
       name: 'Marcus',
+      imagePath: 'assets/defaultasker.png',
       strength: 35,
       intelligence: 25,
       stamina: 40,
@@ -156,6 +157,7 @@ List<Gladiator> createStartingGladiators() {
     Gladiator(
       id: 'glad_2',
       name: 'Crixus',
+      imagePath: 'assets/defaultasker.png',
       strength: 45,
       intelligence: 20,
       stamina: 35,
@@ -167,6 +169,7 @@ List<Gladiator> createStartingGladiators() {
     Gladiator(
       id: 'glad_3',
       name: 'Oenomaus',
+      imagePath: 'assets/defaultasker.png',
       strength: 30,
       intelligence: 40,
       stamina: 30,

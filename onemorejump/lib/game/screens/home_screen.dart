@@ -135,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: _CornerIcon(
                         label: 'Diplomasi',
                         color: GameConstants.bronze,
-                        imagePath: 'assets/diplomasi.jpg',
+                        imagePath: 'assets/karin.jpg',
                         onTap: () => _navigateTo(context, game, const DiplomacyScreen()),
                       ),
                     ),

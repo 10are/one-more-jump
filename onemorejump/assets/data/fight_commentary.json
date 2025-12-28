@@ -1,0 +1,92 @@
+{
+  "fight_start": [
+    "{player} ve {enemy} arenaya cikiyor! Kalabalik coskuyla bagiriyor!",
+    "Bugunun kapismasi: {player} karsisinda {enemy}! Kim galip gelecek?",
+    "{enemy} kendinden emin gorunuyor. {player} ise sakin ve odakli.",
+    "Arenada olum kokusu var! {player} ve {enemy} birbirine bakiyor.",
+    "Roma'nin en buyuk gosterisi basliyor! {player} vs {enemy}!"
+  ],
+  "round_player_attack": [
+    "{player} hizla ileri atildi!",
+    "{player} kilicini havada savurdu!",
+    "{player} guclu bir hamle yapti!",
+    "{player} rakibine dogru kosturdu!",
+    "{player} siddetli bir saldiri baslatti!",
+    "{player} kalkanini firlatti ve saldirdi!",
+    "{player} dusmanin acik noktasini gordu!"
+  ],
+  "round_enemy_attack": [
+    "{enemy} karsilik verdi!",
+    "{enemy} savunmaya gecti ve vurdu!",
+    "{enemy} geri cekilip saldirdi!",
+    "{enemy} guclu bir darbe indirdi!",
+    "{enemy} cilginca saldiruyor!",
+    "{enemy} kalkanini kullandi ve vurdu!"
+  ],
+  "player_hit": [
+    "{player} darbe aldi! Sarsiliyor...",
+    "{player} yaralandi ama ayakta!",
+    "{player} kan kaybiyor!",
+    "{player} tokezledi!",
+    "{player} zor durumda!"
+  ],
+  "enemy_hit": [
+    "{enemy} darbe aldi!",
+    "{enemy} yaralandi!",
+    "{enemy} geriye sendeledi!",
+    "{enemy} acidan kivranyor!",
+    "{enemy} zayifliyor!"
+  ],
+  "critical_player": [
+    "{player} MUHTESEM bir darbe indirdi!",
+    "{player} OLUMCUL bir hamle yapti!",
+    "INANILMAZ! {player} kritik vurus!",
+    "{player} tam isabet! Kalabalik coskuda!"
+  ],
+  "critical_enemy": [
+    "{enemy} YIKICI bir darbe indirdi!",
+    "{enemy} OLUMCUL saldiri!",
+    "TEHLIKELI! {enemy} kritik vurus yapti!",
+    "{enemy} acmasizca saldiriyor!"
+  ],
+  "tension": [
+    "Iki gladyator da yorgun gorunuyor...",
+    "Kalabalik nefesini tuttu!",
+    "Bu savas tarihe gececek!",
+    "Her iki taraf da tum gucuyle savsiyor!",
+    "Arena kan icinde!"
+  ],
+  "finish_player_win": [
+    "{player} KAZANDI! {enemy} yere yuvarlanıyor!",
+    "ZAFER! {player} galip! Roma onu alkisliyor!",
+    "{player} muzaffer! {enemy} yenildi!",
+    "{enemy} diz cokuyor... {player} sampiyonu!",
+    "MUHTSEM ZAFER! {player} yenilmez!",
+    "{player} kilicini kaldirdi! GALIP!",
+    "Roma {player}'i selamlıyor! KAZANAN!"
+  ],
+  "finish_player_lose": [
+    "{player} YENILDI! {enemy} zafer kazandi!",
+    "{enemy} galip! {player} yere dustu...",
+    "TRAJEDI! {player} maglup oldu!",
+    "{player} artik ayakta duramıyor... {enemy} kazandi!",
+    "{enemy} acımasızca kazandı!"
+  ],
+  "finish_player_death": [
+    "{player} oldu! Arena sessizlige gomuldu...",
+    "TRAJIK SON! {player} hayatini kaybetti!",
+    "{enemy} olumcul darbeyi indirdi... {player} artik yok!",
+    "Roma bir gladyatorunu kaybetti... {player} huzur icinde yatsin."
+  ],
+  "finish_enemy_death": [
+    "{enemy} oldu! {player} celladini yapti!",
+    "{player} olum darbesi indirdi! {enemy} artik yok!",
+    "OLUM! {enemy} arenada can verdi!",
+    "{player} acımasız bir sekilde {enemy}'i oldurdu!"
+  ],
+  "draw": [
+    "Iki gladyator da ayakta zor duruyor!",
+    "ESITLIK! Her iki taraf da cok yorgun!",
+    "Kararsiz macta iki taraf da yaralı!"
+  ]
+}
