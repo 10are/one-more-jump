@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../gladiator_game.dart';
 import '../constants.dart';
+import '../services/save_service.dart';
 
 class GamblingScreen extends StatefulWidget {
   const GamblingScreen({super.key});
@@ -245,6 +246,7 @@ class _Blackjack21GameState extends State<_Blackjack21Game> {
       widget.game.state.modifyGold(-betAmount);
     }
     widget.game.refreshState();
+    SaveService.autoSave(widget.game.state);
   }
 
   // Antik Roma kart isimleri
@@ -648,6 +650,7 @@ class _DiceGameState extends State<_DiceGame> {
       widget.game.state.modifyGold(-betAmount);
     }
     widget.game.refreshState();
+    SaveService.autoSave(widget.game.state);
   }
 
   @override

@@ -10,6 +10,8 @@ import 'school_screen.dart';
 import 'market_screen.dart';
 import 'colosseum_screen.dart';
 import 'gambling_screen.dart';
+import 'settings_screen.dart';
+import '../services/save_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -227,39 +229,24 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Müzik ikonu
-          ListenableBuilder(
-            listenable: audioService,
-            builder: (context, child) {
-              return GestureDetector(
-                onTap: () {
-                  audioService.toggleMusic();
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: audioService.isMusicEnabled
-                        ? GameConstants.gold.withAlpha(30)
-                        : GameConstants.danger.withAlpha(30),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: audioService.isMusicEnabled
-                          ? GameConstants.gold.withAlpha(60)
-                          : GameConstants.danger.withAlpha(60),
-                    ),
-                  ),
-                  child: Icon(
-                    audioService.isMusicEnabled
-                        ? Icons.music_note
-                        : Icons.music_off,
-                    color: audioService.isMusicEnabled
-                        ? GameConstants.gold
-                        : GameConstants.danger,
-                    size: 20,
-                  ),
+          // Ayarlar ikonu
+          GestureDetector(
+            onTap: () => _navigateToSettings(context, game),
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: GameConstants.gold.withAlpha(30),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: GameConstants.gold.withAlpha(60),
                 ),
-              );
-            },
+              ),
+              child: Icon(
+                Icons.settings,
+                color: GameConstants.gold,
+                size: 20,
+              ),
+            ),
           ),
 
           // Hafta
@@ -315,6 +302,18 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => ChangeNotifierProvider.value(
           value: game,
           child: screen,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToSettings(BuildContext context, GladiatorGame game) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChangeNotifierProvider.value(
+          value: game,
+          child: const SettingsScreen(),
         ),
       ),
     );
@@ -613,10 +612,14 @@ class _WeeklyExpensesSheet extends StatelessWidget {
     );
   }
 
-  void _payAndAdvance(BuildContext context, GladiatorGame game) {
+  void _payAndAdvance(BuildContext context, GladiatorGame game) async {
     Navigator.pop(context);
     final result = game.paySalaries();
 
+    // Auto-save after week advance
+    await SaveService.autoSave(game.state);
+
+    if (!context.mounted) return;
     _showCustomPopup(
       context,
       result.rebellionRisk ? 'TEHLİKE!' : 'HAFTA GEÇTİ',

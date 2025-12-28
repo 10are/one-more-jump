@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../gladiator_game.dart';
 import '../constants.dart';
+import '../services/save_service.dart';
 
 class SchoolScreen extends StatefulWidget {
   const SchoolScreen({super.key});
@@ -1012,6 +1013,7 @@ class _SchoolScreenState extends State<SchoolScreen> {
       onTap: () {
         Navigator.pop(ctx);
         final success = game.trainGladiator(gladiator.id, stat);
+        if (success) SaveService.autoSave(game.state);
         _showPopup('Egitim', success, success ? '$label egitimi tamamlandi!' : 'Basarisiz!');
       },
       child: Container(
@@ -1105,6 +1107,7 @@ class _SchoolScreenState extends State<SchoolScreen> {
   void _healGladiator(GladiatorGame game, dynamic gladiator, int price, int heal, String medName) {
     final success = game.healGladiatorWithMedicine(gladiator.id, price, heal);
     if (success) {
+      SaveService.autoSave(game.state);
       final hasDoctor = game.state.staff.any((s) => s.role.toString().contains('doctor'));
       final totalHeal = hasDoctor ? heal + 15 : heal;
       _showPopup(medName, true, '${gladiator.name} +$totalHeal HP');

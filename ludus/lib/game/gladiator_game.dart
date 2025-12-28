@@ -19,6 +19,12 @@ class GladiatorGame extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Kayıttan yükle
+  void loadFromState(GameState loadedState) {
+    state = loadedState;
+    notifyListeners();
+  }
+
   // Ana menüye dön
   void returnToMenu() {
     state.phase = GamePhase.menu;

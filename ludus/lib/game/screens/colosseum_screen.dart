@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../gladiator_game.dart';
 import '../constants.dart';
 import '../models/gladiator.dart';
+import '../services/save_service.dart';
 import 'fight_screen.dart';
 import 'components/dialogue_component.dart' show DialogueComponent, DialogueOption, PreFightDialogueHelper;
 
@@ -980,6 +981,9 @@ class _ColosseumGladiatorSelectionSheetState extends State<_ColosseumGladiatorSe
             }
 
             widget.game.refreshState();
+
+            // Auto-save after fight
+            SaveService.autoSave(widget.game.state);
           },
         ),
       ),

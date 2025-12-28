@@ -6,6 +6,7 @@ import '../gladiator_game.dart';
 import '../models/gladiator.dart';
 import '../models/game_state.dart';
 import '../constants.dart';
+import '../services/save_service.dart';
 
 class MarketScreen extends StatefulWidget {
   const MarketScreen({super.key});
@@ -639,6 +640,7 @@ class _SlaveCard extends StatelessWidget {
     final success = game.buyGladiator(gladiator, price);
 
     if (success) {
+      SaveService.autoSave(game.state);
       onPurchased();
     } else {
       onFailed();
@@ -906,6 +908,7 @@ class _StaffCard extends StatelessWidget {
     final success = game.hireStaffWithPrice(staffObj, price);
 
     if (success) {
+      SaveService.autoSave(game.state);
       onPurchased();
     } else {
       onFailed();
