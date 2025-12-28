@@ -172,9 +172,9 @@ class _Blackjack21GameState extends State<_Blackjack21Game> with TickerProviderS
   List<int> dealerCards = [];
   bool dealerRevealed = false;
 
-  // Kart animasyonu
-  late AnimationController _cardAnimController;
-  late Animation<double> _cardFlipAnimation;
+  // Her kart için ayrı animasyon controller'ları
+  List<AnimationController> _playerCardControllers = [];
+  List<AnimationController> _dealerCardControllers = [];
 
   int get playerTotal => _calcTotal(playerCards);
   int get dealerTotal => _calcTotal(dealerCards);
@@ -182,19 +182,39 @@ class _Blackjack21GameState extends State<_Blackjack21Game> with TickerProviderS
   @override
   void initState() {
     super.initState();
-    _cardAnimController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _cardFlipAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _cardAnimController, curve: Curves.easeOut),
-    );
   }
 
   @override
   void dispose() {
-    _cardAnimController.dispose();
+    for (var c in _playerCardControllers) {
+      c.dispose();
+    }
+    for (var c in _dealerCardControllers) {
+      c.dispose();
+    }
     super.dispose();
+  }
+
+  // Yeni kart animasyonu oluştur
+  AnimationController _createCardAnimation() {
+    final controller = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    controller.forward();
+    return controller;
+  }
+
+  // Tüm animasyonları temizle
+  void _clearAnimations() {
+    for (var c in _playerCardControllers) {
+      c.dispose();
+    }
+    for (var c in _dealerCardControllers) {
+      c.dispose();
+    }
+    _playerCardControllers = [];
+    _dealerCardControllers = [];
   }
 
   int _calcTotal(List<int> cards) {
@@ -218,22 +238,52 @@ class _Blackjack21GameState extends State<_Blackjack21Game> with TickerProviderS
 
   int _draw() => _random.nextInt(13) + 1;
 
-  void _start() {
+  void _start() async {
     if (widget.game.state.gold < betAmount) return;
-    _cardAnimController.forward(from: 0);
+
+    _clearAnimations();
+
     setState(() {
       isPlaying = true;
       gameOver = false;
       dealerRevealed = false;
-      playerCards = [_draw(), _draw()];
-      dealerCards = [_draw(), _draw()];
+      playerCards = [];
+      dealerCards = [];
     });
-    if (playerTotal == 21) _stand();
+
+    // Kartları sırayla dağıt - animasyonlu
+    await Future.delayed(const Duration(milliseconds: 100));
+    _addPlayerCard();
+    await Future.delayed(const Duration(milliseconds: 200));
+    _addDealerCard();
+    await Future.delayed(const Duration(milliseconds: 200));
+    _addPlayerCard();
+    await Future.delayed(const Duration(milliseconds: 200));
+    _addDealerCard();
+
+    if (playerTotal == 21) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      _stand();
+    }
   }
 
-  void _hit() {
-    _cardAnimController.forward(from: 0);
-    setState(() => playerCards.add(_draw()));
+  void _addPlayerCard() {
+    setState(() {
+      playerCards.add(_draw());
+      _playerCardControllers.add(_createCardAnimation());
+    });
+  }
+
+  void _addDealerCard() {
+    setState(() {
+      dealerCards.add(_draw());
+      _dealerCardControllers.add(_createCardAnimation());
+    });
+  }
+
+  void _hit() async {
+    _addPlayerCard();
+    await Future.delayed(const Duration(milliseconds: 300));
     if (playerTotal > 21) {
       _end(false);
     } else if (playerTotal == 21) {
@@ -274,9 +324,8 @@ class _Blackjack21GameState extends State<_Blackjack21Game> with TickerProviderS
   }
 
   // Yeni el - oyun devam ediyor
-  void _newHand() {
+  void _newHand() async {
     if (widget.game.state.gold < betAmount) {
-      // Para kalmadıysa uyar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Yeterli altın yok!'),
@@ -285,14 +334,30 @@ class _Blackjack21GameState extends State<_Blackjack21Game> with TickerProviderS
       );
       return;
     }
-    _cardAnimController.forward(from: 0);
+
+    _clearAnimations();
+
     setState(() {
       gameOver = false;
       dealerRevealed = false;
-      playerCards = [_draw(), _draw()];
-      dealerCards = [_draw(), _draw()];
+      playerCards = [];
+      dealerCards = [];
     });
-    if (playerTotal == 21) _stand();
+
+    // Kartları sırayla dağıt
+    await Future.delayed(const Duration(milliseconds: 100));
+    _addPlayerCard();
+    await Future.delayed(const Duration(milliseconds: 200));
+    _addDealerCard();
+    await Future.delayed(const Duration(milliseconds: 200));
+    _addPlayerCard();
+    await Future.delayed(const Duration(milliseconds: 200));
+    _addDealerCard();
+
+    if (playerTotal == 21) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      _stand();
+    }
   }
 
   // Normal sayı göster
@@ -511,6 +576,9 @@ class _Blackjack21GameState extends State<_Blackjack21Game> with TickerProviderS
   }
 
   Widget _cardRow(String title, List<int> cards, int total, bool hide) {
+    final isPlayer = title == 'SEN';
+    final controllers = isPlayer ? _playerCardControllers : _dealerCardControllers;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -559,7 +627,8 @@ class _Blackjack21GameState extends State<_Blackjack21Game> with TickerProviderS
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(cards.length, (i) {
               final hidden = hide && i == 1;
-              return _buildAntiqueCard(cards[i], hidden);
+              final controller = i < controllers.length ? controllers[i] : null;
+              return _buildAnimatedCard(cards[i], hidden, controller);
             }),
           ),
         ],
@@ -567,12 +636,40 @@ class _Blackjack21GameState extends State<_Blackjack21Game> with TickerProviderS
     );
   }
 
+  // Animasyonlu kart widget'ı
+  Widget _buildAnimatedCard(int value, bool hidden, AnimationController? controller) {
+    if (controller == null) {
+      return _buildAntiqueCard(value, hidden);
+    }
+
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        final progress = controller.value;
+        final slideOffset = (1 - progress) * 100;
+        final rotation = (1 - progress) * 0.5;
+        final scale = 0.5 + (progress * 0.5);
+
+        return Transform.translate(
+          offset: Offset(slideOffset, -slideOffset * 0.5),
+          child: Transform.rotate(
+            angle: rotation,
+            child: Transform.scale(
+              scale: scale,
+              child: Opacity(
+                opacity: progress,
+                child: _buildAntiqueCard(value, hidden),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   // Eskitilmiş antik kart tasarımı - NORMAL SAYILAR
   Widget _buildAntiqueCard(int value, bool hidden) {
-    return AnimatedBuilder(
-      animation: _cardFlipAnimation,
-      builder: (context, child) {
-        return Container(
+    return Container(
           width: 55,
           height: 78,
           margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -718,8 +815,6 @@ class _Blackjack21GameState extends State<_Blackjack21Game> with TickerProviderS
                     ),
                   ],
                 ),
-        );
-      },
     );
   }
 
@@ -798,7 +893,6 @@ class _DiceGameState extends State<_DiceGame> with TickerProviderStateMixin {
   // Zar animasyonu
   late AnimationController _diceAnimController;
   late Animation<double> _diceRotation;
-  late Animation<double> _diceBounce;
 
   @override
   void initState() {
@@ -808,9 +902,6 @@ class _DiceGameState extends State<_DiceGame> with TickerProviderStateMixin {
       vsync: this,
     );
     _diceRotation = Tween<double>(begin: 0, end: 2 * pi).animate(
-      CurvedAnimation(parent: _diceAnimController, curve: Curves.easeOut),
-    );
-    _diceBounce = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _diceAnimController, curve: Curves.bounceOut),
     );
   }
