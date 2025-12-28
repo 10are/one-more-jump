@@ -76,7 +76,7 @@ class _GamblingScreenState extends State<GamblingScreen> {
 
                       const Spacer(),
 
-                      // Oyun seçimi - BELİRGİN
+                      // Oyun seçimi
                       _buildGameSelector(),
                     ],
                   ),
@@ -151,7 +151,7 @@ class _GamblingScreenState extends State<GamblingScreen> {
   }
 }
 
-// ============ 21 (BLACKJACK) OYUNU - ANTİK KARTLAR ============
+// ============ 21 (BLACKJACK) OYUNU ============
 class _Blackjack21Game extends StatefulWidget {
   final GladiatorGame game;
 
@@ -161,7 +161,7 @@ class _Blackjack21Game extends StatefulWidget {
   State<_Blackjack21Game> createState() => _Blackjack21GameState();
 }
 
-class _Blackjack21GameState extends State<_Blackjack21Game> {
+class _Blackjack21GameState extends State<_Blackjack21Game> with TickerProviderStateMixin {
   final _random = Random();
   int betAmount = 50;
   bool isPlaying = false;
@@ -172,8 +172,30 @@ class _Blackjack21GameState extends State<_Blackjack21Game> {
   List<int> dealerCards = [];
   bool dealerRevealed = false;
 
+  // Kart animasyonu
+  late AnimationController _cardAnimController;
+  late Animation<double> _cardFlipAnimation;
+
   int get playerTotal => _calcTotal(playerCards);
   int get dealerTotal => _calcTotal(dealerCards);
+
+  @override
+  void initState() {
+    super.initState();
+    _cardAnimController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _cardFlipAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _cardAnimController, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _cardAnimController.dispose();
+    super.dispose();
+  }
 
   int _calcTotal(List<int> cards) {
     int total = 0, aces = 0;
@@ -198,6 +220,7 @@ class _Blackjack21GameState extends State<_Blackjack21Game> {
 
   void _start() {
     if (widget.game.state.gold < betAmount) return;
+    _cardAnimController.forward(from: 0);
     setState(() {
       isPlaying = true;
       gameOver = false;
@@ -209,6 +232,7 @@ class _Blackjack21GameState extends State<_Blackjack21Game> {
   }
 
   void _hit() {
+    _cardAnimController.forward(from: 0);
     setState(() => playerCards.add(_draw()));
     if (playerTotal > 21) {
       _end(false);
@@ -249,24 +273,35 @@ class _Blackjack21GameState extends State<_Blackjack21Game> {
     SaveService.autoSave(widget.game.state);
   }
 
-  // Antik Roma kart isimleri
-  String _cardName(int v) {
-    if (v == 1) return 'I'; // As = I (Roma rakamı)
-    if (v == 11) return 'XI'; // Jack = XI
-    if (v == 12) return 'XII'; // Queen = XII
-    if (v == 13) return 'XIII'; // King = XIII
-    // Roma rakamları
-    const romanNumerals = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
-    return v <= 10 ? romanNumerals[v] : '$v';
+  // Yeni el - oyun devam ediyor
+  void _newHand() {
+    if (widget.game.state.gold < betAmount) {
+      // Para kalmadıysa uyar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Yeterli altın yok!'),
+          backgroundColor: GameConstants.danger,
+        ),
+      );
+      return;
+    }
+    _cardAnimController.forward(from: 0);
+    setState(() {
+      gameOver = false;
+      dealerRevealed = false;
+      playerCards = [_draw(), _draw()];
+      dealerCards = [_draw(), _draw()];
+    });
+    if (playerTotal == 21) _stand();
   }
 
-  // Antik sembol
-  String _cardSymbol(int v) {
-    if (v == 1) return '☆'; // As - Yıldız
-    if (v == 11) return '⚔'; // Jack - Kılıç
-    if (v == 12) return '♕'; // Queen - Taç
-    if (v == 13) return '♔'; // King - Kral tacı
-    return '●';
+  // Normal sayı göster
+  String _cardName(int v) {
+    if (v == 1) return 'A';
+    if (v == 11) return 'J';
+    if (v == 12) return 'Q';
+    if (v == 13) return 'K';
+    return '$v';
   }
 
   @override
@@ -274,7 +309,7 @@ class _Blackjack21GameState extends State<_Blackjack21Game> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Arka plan - 21.jpg
+        // Arka plan
         Image.asset(
           'assets/21.jpg',
           fit: BoxFit.cover,
@@ -290,7 +325,7 @@ class _Blackjack21GameState extends State<_Blackjack21Game> {
         ),
 
         // Karartma
-        Container(color: Colors.black.withAlpha(100)),
+        Container(color: Colors.black.withAlpha(120)),
 
         // Oyun içeriği
         SafeArea(
@@ -319,7 +354,7 @@ class _Blackjack21GameState extends State<_Blackjack21Game> {
                   _actionBtn('OYNA', GameConstants.gold, _start),
                 ] else ...[
                   // Krupiye kartları
-                  _cardRow('KRUPIER', dealerCards, dealerTotal, !dealerRevealed),
+                  _cardRow('KRUPİYE', dealerCards, dealerTotal, !dealerRevealed),
                   const SizedBox(height: 20),
 
                   // Sonuç
@@ -330,7 +365,9 @@ class _Blackjack21GameState extends State<_Blackjack21Game> {
                         color: Colors.black54,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: playerWon ? GameConstants.gold : GameConstants.danger,
+                          color: playerTotal == dealerTotal
+                              ? Colors.white54
+                              : (playerWon ? GameConstants.success : GameConstants.danger),
                           width: 2,
                         ),
                       ),
@@ -341,7 +378,9 @@ class _Blackjack21GameState extends State<_Blackjack21Game> {
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: playerWon ? GameConstants.success : GameConstants.danger,
+                          color: playerTotal == dealerTotal
+                              ? Colors.white54
+                              : (playerWon ? GameConstants.success : GameConstants.danger),
                         ),
                       ),
                     )
@@ -355,13 +394,21 @@ class _Blackjack21GameState extends State<_Blackjack21Game> {
                   const SizedBox(height: 24),
 
                   if (gameOver) ...[
-                    _actionBtn('YENİ OYUN', const Color(0xFF9C27B0), () {
-                      setState(() {
-                        isPlaying = false;
-                        playerCards = [];
-                        dealerCards = [];
-                      });
-                    }),
+                    // Devam et veya çık
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _actionBtn('DEVAM ET', const Color(0xFF9C27B0), _newHand),
+                        const SizedBox(width: 16),
+                        _smallBtn('ÇIK', Colors.white38, () {
+                          setState(() {
+                            isPlaying = false;
+                            playerCards = [];
+                            dealerCards = [];
+                          });
+                        }),
+                      ],
+                    ),
                   ] else ...[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -440,6 +487,29 @@ class _Blackjack21GameState extends State<_Blackjack21Game> {
     );
   }
 
+  Widget _smallBtn(String label, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.black45,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: color,
+            letterSpacing: 1,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _cardRow(String title, List<int> cards, int total, bool hide) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -497,104 +567,211 @@ class _Blackjack21GameState extends State<_Blackjack21Game> {
     );
   }
 
-  // Antik Roma tarzı kart
+  // Eskitilmiş antik kart tasarımı - NORMAL SAYILAR
   Widget _buildAntiqueCard(int value, bool hidden) {
-    return Container(
-      width: 50,
-      height: 72,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      decoration: BoxDecoration(
-        // Parşömen/eski kağıt rengi
-        gradient: hidden
-            ? const LinearGradient(
-                colors: [Color(0xFF6B3FA0), Color(0xFF4A2C7C)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : const LinearGradient(
-                colors: [Color(0xFFF5E6C8), Color(0xFFE8D4A8), Color(0xFFD4C098)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+    return AnimatedBuilder(
+      animation: _cardFlipAnimation,
+      builder: (context, child) {
+        return Container(
+          width: 55,
+          height: 78,
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(
+            // Eskitilmiş parşömen rengi
+            gradient: hidden
+                ? const LinearGradient(
+                    colors: [Color(0xFF6B3FA0), Color(0xFF4A2C7C)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : const LinearGradient(
+                    colors: [
+                      Color(0xFFF5E6C8),
+                      Color(0xFFE8D4A8),
+                      Color(0xFFD4C098),
+                      Color(0xFFC4B088),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    stops: [0.0, 0.3, 0.7, 1.0],
+                  ),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: hidden ? const Color(0xFF9C27B0) : const Color(0xFF6B5344),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(120),
+                blurRadius: 6,
+                offset: const Offset(2, 3),
               ),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: hidden ? const Color(0xFF9C27B0) : const Color(0xFF8B7355),
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black45,
-            blurRadius: 4,
-            offset: const Offset(2, 2),
+            ],
           ),
-        ],
-      ),
-      child: hidden
-          ? Center(
-              child: Icon(
-                Icons.shield,
-                color: Colors.white.withAlpha(180),
-                size: 28,
-              ),
-            )
-          : Stack(
-              children: [
-                // Kenar süslemeleri
-                Positioned(
-                  top: 4,
-                  left: 4,
-                  child: Text(
-                    _cardName(value),
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: (value == 1 || value >= 11) ? const Color(0xFF8B0000) : const Color(0xFF4A3728),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 4,
-                  right: 4,
-                  child: Transform.rotate(
-                    angle: 3.14159,
-                    child: Text(
-                      _cardName(value),
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: (value == 1 || value >= 11) ? const Color(0xFF8B0000) : const Color(0xFF4A3728),
-                      ),
-                    ),
-                  ),
-                ),
-                // Merkez sembol
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+          child: hidden
+              ? Center(
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      Text(
-                        _cardSymbol(value),
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: (value == 1 || value >= 11) ? const Color(0xFF8B0000) : const Color(0xFF4A3728),
-                        ),
-                      ),
-                      Text(
-                        _cardName(value),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: (value == 1 || value >= 11) ? const Color(0xFF8B0000) : const Color(0xFF4A3728),
-                          fontFamily: 'serif',
-                        ),
-                      ),
+                      Icon(Icons.shield, color: Colors.white.withAlpha(60), size: 40),
+                      Icon(Icons.question_mark, color: Colors.white.withAlpha(180), size: 20),
                     ],
                   ),
+                )
+              : Stack(
+                  children: [
+                    // Eskitilmiş doku efekti
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _AgedPaperPainter(),
+                      ),
+                    ),
+                    // Sol üst köşe sayı
+                    Positioned(
+                      top: 4,
+                      left: 6,
+                      child: Text(
+                        _cardName(value),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: _getCardColor(value),
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withAlpha(50),
+                              offset: const Offset(1, 1),
+                              blurRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Sağ alt köşe sayı (ters)
+                    Positioned(
+                      bottom: 4,
+                      right: 6,
+                      child: Transform.rotate(
+                        angle: 3.14159,
+                        child: Text(
+                          _cardName(value),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: _getCardColor(value),
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withAlpha(50),
+                                offset: const Offset(1, 1),
+                                blurRadius: 1,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Merkez - büyük sayı ve sembol
+                    Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Antik sembol
+                          Text(
+                            _getCardSymbol(value),
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: _getCardColor(value),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          // Büyük sayı
+                          Text(
+                            _cardName(value),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: _getCardColor(value),
+                              letterSpacing: -1,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withAlpha(40),
+                                  offset: const Offset(1, 1),
+                                  blurRadius: 2,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Kenar süslemeleri - antik çerçeve
+                    Positioned.fill(
+                      child: Container(
+                        margin: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(
+                            color: const Color(0xFF8B7355).withAlpha(60),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+        );
+      },
     );
   }
+
+  Color _getCardColor(int value) {
+    // As ve figürler koyu kırmızı, diğerleri koyu kahve
+    if (value == 1 || value >= 11) {
+      return const Color(0xFF8B0000);
+    }
+    return const Color(0xFF3D2914);
+  }
+
+  String _getCardSymbol(int value) {
+    if (value == 1) return '★'; // As - Yıldız
+    if (value == 11) return '⚔'; // Jack - Kılıç
+    if (value == 12) return '♕'; // Queen - Kraliçe
+    if (value == 13) return '♔'; // King - Kral
+    return '●';
+  }
+}
+
+// Eskitilmiş kağıt efekti
+class _AgedPaperPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final random = Random(42); // Sabit seed
+    final paint = Paint()..color = const Color(0xFF8B7355).withAlpha(15);
+
+    // Rastgele lekeler
+    for (int i = 0; i < 8; i++) {
+      final x = random.nextDouble() * size.width;
+      final y = random.nextDouble() * size.height;
+      final r = random.nextDouble() * 4 + 1;
+      canvas.drawCircle(Offset(x, y), r, paint);
+    }
+
+    // Çizik efekti
+    final linePaint = Paint()
+      ..color = const Color(0xFF8B7355).withAlpha(20)
+      ..strokeWidth = 0.5;
+
+    for (int i = 0; i < 3; i++) {
+      final y = random.nextDouble() * size.height;
+      canvas.drawLine(
+        Offset(0, y),
+        Offset(size.width * (0.3 + random.nextDouble() * 0.4), y + random.nextDouble() * 5),
+        linePaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 // ============ ZAR OYUNU ============
@@ -607,27 +784,77 @@ class _DiceGame extends StatefulWidget {
   State<_DiceGame> createState() => _DiceGameState();
 }
 
-class _DiceGameState extends State<_DiceGame> {
+class _DiceGameState extends State<_DiceGame> with TickerProviderStateMixin {
   final _random = Random();
   int betAmount = 50;
+  bool isPlaying = false; // Oyun başladı mı?
   bool isRolling = false;
   bool showResult = false;
-  bool hasRolled = false; // İlk atış yapıldı mı?
 
   int p1 = 0, p2 = 0, o1 = 0, o2 = 0;
   int get pTotal => p1 + p2;
   int get oTotal => o1 + o2;
 
-  void _roll() async {
+  // Zar animasyonu
+  late AnimationController _diceAnimController;
+  late Animation<double> _diceRotation;
+  late Animation<double> _diceBounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _diceAnimController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _diceRotation = Tween<double>(begin: 0, end: 2 * pi).animate(
+      CurvedAnimation(parent: _diceAnimController, curve: Curves.easeOut),
+    );
+    _diceBounce = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _diceAnimController, curve: Curves.bounceOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _diceAnimController.dispose();
+    super.dispose();
+  }
+
+  void _startGame() {
     if (widget.game.state.gold < betAmount) return;
+    setState(() {
+      isPlaying = true;
+      showResult = false;
+      p1 = 0;
+      p2 = 0;
+      o1 = 0;
+      o2 = 0;
+    });
+  }
+
+  void _roll() async {
+    if (widget.game.state.gold < betAmount) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Yeterli altın yok!'),
+          backgroundColor: GameConstants.danger,
+        ),
+      );
+      return;
+    }
 
     setState(() {
       isRolling = true;
       showResult = false;
     });
 
-    for (int i = 0; i < 10; i++) {
-      await Future.delayed(const Duration(milliseconds: 80));
+    // Animasyon başlat
+    _diceAnimController.forward(from: 0);
+
+    // Zar atma animasyonu
+    for (int i = 0; i < 12; i++) {
+      await Future.delayed(const Duration(milliseconds: 60));
       if (mounted) {
         setState(() {
           p1 = _random.nextInt(6) + 1;
@@ -641,9 +868,9 @@ class _DiceGameState extends State<_DiceGame> {
     setState(() {
       isRolling = false;
       showResult = true;
-      hasRolled = true;
     });
 
+    // Sonuç işle
     if (pTotal > oTotal) {
       widget.game.state.modifyGold(betAmount);
     } else if (pTotal < oTotal) {
@@ -658,7 +885,7 @@ class _DiceGameState extends State<_DiceGame> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Arka plan - zar.jpg
+        // Arka plan
         Image.asset(
           'assets/zar.jpg',
           fit: BoxFit.cover,
@@ -674,7 +901,7 @@ class _DiceGameState extends State<_DiceGame> {
         ),
 
         // Karartma
-        Container(color: Colors.black.withAlpha(100)),
+        Container(color: Colors.black.withAlpha(120)),
 
         // Oyun içeriği
         SafeArea(
@@ -684,120 +911,127 @@ class _DiceGameState extends State<_DiceGame> {
               children: [
                 const Spacer(),
 
-                // Rakip zarları
-                _diceRow('RAKİP', o1, o2, oTotal, GameConstants.danger, !hasRolled),
-
-                const SizedBox(height: 30),
-
-                // Sonuç
-                if (showResult)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: pTotal > oTotal
-                            ? GameConstants.success
-                            : (pTotal < oTotal ? GameConstants.danger : Colors.white54),
-                        width: 2,
-                      ),
-                    ),
-                    child: Text(
-                      pTotal > oTotal
-                          ? '+$betAmount ALTIN'
-                          : (pTotal < oTotal ? '-$betAmount ALTIN' : 'BERABERE'),
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: pTotal > oTotal
-                            ? GameConstants.success
-                            : (pTotal < oTotal ? GameConstants.danger : Colors.white54),
-                      ),
-                    ),
-                  )
-                else
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.black38,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      'VS',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white38,
-                      ),
-                    ),
-                  ),
-
-                const SizedBox(height: 30),
-
-                // Oyuncu zarları
-                _diceRow('SEN', p1, p2, pTotal, GameConstants.success, !hasRolled),
-
-                const SizedBox(height: 40),
-
-                // Bahis seçimi
-                if (!isRolling) ...[
+                if (!isPlaying) ...[
+                  // Başlangıç - bahis seç ve oyna
                   Text(
-                    'BAHİS',
+                    'BAHİS SEÇ',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 14,
                       color: Colors.white54,
                       letterSpacing: 2,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [25, 50, 100, 200].map((b) => _betBtn(b)).toList(),
                   ),
-                  const SizedBox(height: 20),
-                ],
+                  const SizedBox(height: 24),
+                  _actionBtn('OYNA', const Color(0xFF9C27B0), _startGame),
+                ] else ...[
+                  // Oyun devam ediyor
 
-                // Zar at butonu
-                GestureDetector(
-                  onTap: isRolling ? null : _roll,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
-                    decoration: BoxDecoration(
-                      color: isRolling ? Colors.grey : const Color(0xFF9C27B0),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: isRolling
-                          ? null
-                          : [
-                              BoxShadow(
-                                color: const Color(0xFF9C27B0).withAlpha(80),
-                                blurRadius: 16,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
+                  // Rakip zarları
+                  _diceRow('RAKİP', o1, o2, oTotal, GameConstants.danger),
+
+                  const SizedBox(height: 30),
+
+                  // Sonuç
+                  if (showResult)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: pTotal > oTotal
+                              ? GameConstants.success
+                              : (pTotal < oTotal ? GameConstants.danger : Colors.white54),
+                          width: 2,
+                        ),
+                      ),
+                      child: Text(
+                        pTotal > oTotal
+                            ? '+$betAmount ALTIN'
+                            : (pTotal < oTotal ? '-$betAmount ALTIN' : 'BERABERE'),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: pTotal > oTotal
+                              ? GameConstants.success
+                              : (pTotal < oTotal ? GameConstants.danger : Colors.white54),
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.black38,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        'VS',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white38,
+                        ),
+                      ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+
+                  const SizedBox(height: 30),
+
+                  // Oyuncu zarları
+                  _diceRow('SEN', p1, p2, pTotal, GameConstants.success),
+
+                  const SizedBox(height: 40),
+
+                  // Bahis seçimi (oyun içinde)
+                  if (!isRolling && showResult) ...[
+                    Text(
+                      'BAHİS',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white54,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [25, 50, 100, 200].map((b) => _betBtn(b)).toList(),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // Butonlar
+                  if (showResult) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.casino,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          isRolling ? 'ATILIYOR...' : 'ZAR AT',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 2,
-                          ),
-                        ),
+                        _actionBtn('TEKRAR AT', const Color(0xFF9C27B0), _roll),
+                        const SizedBox(width: 16),
+                        _smallBtn('ÇIK', Colors.white38, () {
+                          setState(() {
+                            isPlaying = false;
+                            showResult = false;
+                            p1 = 0;
+                            p2 = 0;
+                            o1 = 0;
+                            o2 = 0;
+                          });
+                        }),
                       ],
                     ),
-                  ),
-                ),
+                  ] else ...[
+                    _actionBtn(
+                      isRolling ? 'ATILIYOR...' : 'ZAR AT',
+                      isRolling ? Colors.grey : const Color(0xFF9C27B0),
+                      isRolling ? () {} : _roll,
+                    ),
+                  ],
+                ],
 
                 const Spacer(),
               ],
@@ -836,7 +1070,73 @@ class _DiceGameState extends State<_DiceGame> {
     );
   }
 
-  Widget _diceRow(String title, int d1, int d2, int total, Color color, bool showPlaceholder) {
+  Widget _actionBtn(String label, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: color != Colors.grey
+              ? [
+                  BoxShadow(
+                    color: color.withAlpha(80),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (label == 'ZAR AT' || label == 'TEKRAR AT')
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Icon(Icons.casino, color: Colors.white, size: 20),
+              ),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _smallBtn(String label, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.black45,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: color,
+            letterSpacing: 1,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _diceRow(String title, int d1, int d2, int total, Color color) {
+    final showPlaceholder = d1 == 0 && d2 == 0;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -858,49 +1158,31 @@ class _DiceGameState extends State<_DiceGame> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              if (d1 > 0 && !showPlaceholder)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: color.withAlpha(30),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: color),
-                  ),
-                  child: Text(
-                    '$total',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: color,
-                    ),
-                  ),
-                )
-              else
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white10,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white24),
-                  ),
-                  child: Text(
-                    '?',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white38,
-                    ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: showPlaceholder ? Colors.white10 : color.withAlpha(30),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: showPlaceholder ? Colors.white24 : color),
+                ),
+                child: Text(
+                  showPlaceholder ? '?' : '$total',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: showPlaceholder ? Colors.white38 : color,
                   ),
                 ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _die(d1, color, showPlaceholder),
+              _animatedDie(d1, color, showPlaceholder),
               const SizedBox(width: 20),
-              _die(d2, color, showPlaceholder),
+              _animatedDie(d2, color, showPlaceholder),
             ],
           ),
         ],
@@ -908,9 +1190,8 @@ class _DiceGameState extends State<_DiceGame> {
     );
   }
 
-  Widget _die(int value, Color color, bool showPlaceholder) {
-    // Placeholder göster - zar atılmadan önce
-    if (showPlaceholder || value == 0) {
+  Widget _animatedDie(int value, Color color, bool showPlaceholder) {
+    if (showPlaceholder) {
       return Container(
         width: 60,
         height: 60,
@@ -929,22 +1210,39 @@ class _DiceGameState extends State<_DiceGame> {
       );
     }
 
-    return Container(
-      width: 60,
-      height: 60,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color, width: 3),
-        boxShadow: [
-          BoxShadow(
-            color: color.withAlpha(60),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+    return AnimatedBuilder(
+      animation: _diceAnimController,
+      builder: (context, child) {
+        final bounce = isRolling ? sin(_diceRotation.value * 3) * 10 : 0.0;
+        final scale = isRolling ? 0.9 + sin(_diceRotation.value * 2) * 0.1 : 1.0;
+
+        return Transform.translate(
+          offset: Offset(0, bounce),
+          child: Transform.scale(
+            scale: scale,
+            child: Transform.rotate(
+              angle: isRolling ? _diceRotation.value : 0,
+              child: Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: color, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withAlpha(60),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: CustomPaint(painter: _DiePainter(value, color)),
+              ),
+            ),
           ),
-        ],
-      ),
-      child: CustomPaint(painter: _DiePainter(value, color)),
+        );
+      },
     );
   }
 }
