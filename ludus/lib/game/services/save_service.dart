@@ -113,6 +113,8 @@ class SaveService {
       'wifeMorale': state.wifeMorale,
       'hasChild': state.hasChild,
       'dialogueIndex': state.dialogueIndex,
+      'storyWeeks': state.storyWeeks,
+      'seenStories': state.seenStories.toList(),
       'savedAt': DateTime.now().toIso8601String(),
     };
   }
@@ -144,6 +146,12 @@ class SaveService {
       wifeMorale: json['wifeMorale'] as int,
       hasChild: json['hasChild'] as bool,
       dialogueIndex: json['dialogueIndex'] as int,
+      storyWeeks: json['storyWeeks'] != null 
+          ? List<int>.from(json['storyWeeks'] as List)
+          : null,
+      seenStories: json['seenStories'] != null
+          ? Set<String>.from(json['seenStories'] as List)
+          : null,
     );
     return state;
   }

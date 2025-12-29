@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'models/game_state.dart';
 import 'models/gladiator.dart';
 import 'constants.dart';
@@ -16,6 +18,112 @@ class GladiatorGame extends ChangeNotifier {
   // Oyunu başlat
   void startGame() {
     state.reset();
+    _initializeStoryWeeks();
+    notifyListeners();
+  }
+
+  // Story haftalarını başlat (rastgele belirle)
+  void _initializeStoryWeeks() {
+    if (state.storyWeeks.isNotEmpty) return; // Zaten belirlenmişse tekrar yapma
+    
+    state.storyWeeks = [];
+    state.seenStories = {};
+    
+    // JSON'dan story'leri yükle ve rastgele haftalar belirle
+    // Bu kısım hafta geçişinde kontrol edilecek
+  }
+
+  // Mevcut hafta için story var mı kontrol et
+  String? getCurrentWeekStoryId() {
+    // Story haftaları henüz belirlenmemişse belirle
+    if (state.storyWeeks.isEmpty) {
+      _determineStoryWeeks();
+    }
+    
+    // Bu hafta için story var mı?
+    if (state.storyWeeks.contains(state.week)) {
+      return _getStoryIdForWeek(state.week);
+    }
+    return null;
+  }
+
+  // Hafta için story ID'sini döndür
+  String? _getStoryIdForWeek(int week) {
+    // Story haftaları sıralı, hangi story bu haftaya ait?
+    final allStories = _loadAllStoryIds();
+    final weekIndex = state.storyWeeks.indexOf(week);
+    
+    if (weekIndex >= 0 && weekIndex < allStories.length) {
+      return allStories[weekIndex];
+    }
+    return null;
+  }
+
+  // Story haftalarını rastgele belirle
+  void _determineStoryWeeks() {
+    state.storyWeeks = [];
+    
+    // İlk story her zaman 5. haftada
+    state.storyWeeks.add(5);
+    
+    // JSON'dan tüm story'leri yükle
+    final allStories = _loadAllStoryIds();
+    
+    // Kalan story'ler için rastgele haftalar belirle
+    int lastStoryWeek = 5;
+    
+    for (int i = 1; i < allStories.length; i++) {
+      int minGap;
+      int extraGap;
+      
+      // 10. haftadan önce: 3-4 hafta arası
+      // 10. haftadan sonra: minimum 5 hafta arası
+      if (lastStoryWeek < 10) {
+        minGap = 3; // Minimum 3 hafta
+        extraGap = 1; // Ekstra 0-1 hafta (toplam 3-4 hafta)
+      } else {
+        minGap = 5; // Minimum 5 hafta
+        extraGap = 2; // Ekstra 0-2 hafta (toplam 5-7 hafta)
+      }
+      
+      // Son story'den en az minGap + extraGap hafta sonra
+      int nextWeek = lastStoryWeek + minGap + _random.nextInt(extraGap + 1);
+      nextWeek = nextWeek.clamp(1, 200); // Maksimum 200. haftaya kadar
+      state.storyWeeks.add(nextWeek);
+      lastStoryWeek = nextWeek;
+    }
+    
+    state.storyWeeks.sort();
+  }
+
+  // JSON'dan tüm story ID'lerini yükle
+  List<String> _loadAllStoryIds() {
+    try {
+      // JSON'dan story'leri yükle (async olmadan, cache'lenmiş olabilir)
+      // Şimdilik basit bir yöntem - ileride cache'lenebilir
+      return ['story_1', 'story_2', 'story_3', 'story_4', 'story_5', 'story_6', 'story_7', 'story_8', 'story_9', 'story_10', 'story_11', 'story_12', 'story_13', 'story_14', 'story_15'];
+    } catch (e) {
+      debugPrint('Story ID yükleme hatası: $e');
+      return ['story_1', 'story_2', 'story_3'];
+    }
+  }
+
+  // JSON'dan story sayısını al (async)
+  Future<int> _getStoryCount() async {
+    try {
+      final String jsonString = await rootBundle.loadString('assets/data/weekly_stories.json');
+      final data = json.decode(jsonString);
+      final stories = data['weekly_stories'] as List;
+      return stories.length;
+    } catch (e) {
+      debugPrint('Story sayısı yükleme hatası: $e');
+      return 6; // Varsayılan
+    }
+  }
+
+  // Story görüldü olarak işaretle
+  void markStoryAsSeen(String storyId) {
+    state.seenStories.add(storyId);
     notifyListeners();
   }
 
@@ -240,6 +348,7 @@ class GladiatorGame extends ChangeNotifier {
         g.changeMorale(5);
       }
       state.advanceWeek();
+      _checkForWeeklyStory();
       notifyListeners();
       return SalaryResult(
         paid: true,
@@ -254,6 +363,7 @@ class GladiatorGame extends ChangeNotifier {
         g.changeMorale(-10);
       }
       state.advanceWeek();
+      _checkForWeeklyStory();
       notifyListeners();
       return SalaryResult(
         paid: true,
@@ -281,6 +391,7 @@ class GladiatorGame extends ChangeNotifier {
           state.gladiators.remove(escapee);
         }
         state.advanceWeek();
+        _checkForWeeklyStory();
         notifyListeners();
         return SalaryResult(
           paid: false,
@@ -291,6 +402,7 @@ class GladiatorGame extends ChangeNotifier {
       }
 
       state.advanceWeek();
+      _checkForWeeklyStory();
       notifyListeners();
       return SalaryResult(
         paid: false,
@@ -486,6 +598,21 @@ class GladiatorGame extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  // Hafta geçişinde story kontrolü
+  void _checkForWeeklyStory() {
+    // Story haftaları henüz belirlenmemişse belirle
+    if (state.storyWeeks.isEmpty) {
+      _determineStoryWeeks();
+    }
+    
+    // Bu hafta için story var mı?
+    final storyId = _getStoryIdForWeek(state.week);
+    if (storyId != null && !state.seenStories.contains(storyId)) {
+      // Story gösterilecek, bu bilgi home_screen'de kontrol edilecek
+      // Burada sadece hazırlık yapıyoruz
+    }
   }
 }
 

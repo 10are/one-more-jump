@@ -12,6 +12,7 @@ import 'colosseum_screen.dart';
 import 'gambling_screen.dart';
 import 'settings_screen.dart';
 import '../services/save_service.dart';
+import 'weekly_story_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -621,11 +622,50 @@ class _WeeklyExpensesSheet extends StatelessWidget {
     await SaveService.autoSave(game.state);
 
     if (!context.mounted) return;
-    _showCustomPopup(
+    
+    // Story kontrolü - hafta geçişinden sonra story var mı?
+    final storyId = game.getCurrentWeekStoryId();
+    if (storyId != null && !game.state.seenStories.contains(storyId)) {
+      // Story göster
+      _showWeeklyStory(context, game, storyId, result);
+    } else {
+      // Normal popup göster
+      _showCustomPopup(
+        context,
+        result.rebellionRisk ? 'TEHLİKE!' : 'HAFTA GEÇTİ',
+        result.message,
+        !result.rebellionRisk,
+      );
+    }
+  }
+
+  void _showWeeklyStory(BuildContext context, GladiatorGame game, String storyId, SalaryResult weekResult) {
+    Navigator.push(
       context,
-      result.rebellionRisk ? 'TEHLİKE!' : 'HAFTA GEÇTİ',
-      result.message,
-      !result.rebellionRisk,
+      MaterialPageRoute(
+        builder: (newContext) => ChangeNotifierProvider.value(
+          value: game,
+          child: WeeklyStoryScreen(
+            storyId: storyId,
+            onComplete: () {
+              game.markStoryAsSeen(storyId);
+              // Widget'ın kendi context'ini kullan
+              if (newContext.mounted) {
+                Navigator.pop(newContext);
+                // Hafta geçiş popup'ını göster (zaten hafta geçmişti)
+                if (context.mounted) {
+                  _showCustomPopup(
+                    context,
+                    weekResult.rebellionRisk ? 'TEHLİKE!' : 'HAFTA GEÇTİ',
+                    weekResult.message,
+                    !weekResult.rebellionRisk,
+                  );
+                }
+              }
+            },
+          ),
+        ),
+      ),
     );
   }
 

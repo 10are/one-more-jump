@@ -1,0 +1,323 @@
+{
+  "weekly_stories": [
+    {
+      "id": "story_1",
+      "dialogues": [
+        {
+          "text": "Oğlum, birkaç hafta geçti. Gladyatörlerin nasıl? Eğitimler düzgün gidiyor mu?",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Sezar'ın adamları hala seni arıyor. Dikkatli ol. Bu okulda güvendesin ama dışarıda değilsin.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Annen seni bana bıraktığında, bana bir mektup verdi. 'Oğlumu koru' diyordu. Sezar'ın askerleri onu aradı ama bulamadılar. Şimdi seni arıyorlar. Ama ben seni koruyacağım.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Güçlenmeye devam et. Her hafta daha güçlü olmalısın. Sezar'ın gücü çok büyük, ama sen de onun kanından geliyorsun. Sen de o kadar güçlü olabilirsin. Sadece burada kal ve eğitil.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "İyi çalışıyorsun. Devam et, ben seni izliyorum. Her zaman yanında olacağım.",
+          "speaker": "Dayı"
+        }
+      ]
+    },
+    {
+      "id": "story_2",
+      "dialogues": [
+        {
+          "text": "Oğlum, zaman geçiyor. Artık daha deneyimli bir gladyatör oldun. Sezar'ın planlarını öğrendim.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "O, seni bulmak için casuslar gönderiyor. Ama henüz buraya ulaşamadılar. Okulumuz güvenli. Eğer bana inanmıyorsan, git. Ama bir gün gerçekle yüzleşeceksin.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Ancak dikkatli olmalısın. Colosseum'a çıktığında, Sezar seni görebilir. O zaman gerçek sınav başlayacak. Sezar, Roma'nın en acımasız imparatoru. Seni öldürmek istiyor çünkü sen onun tek varisi olacaksın ve o, tahtını kaybetmek istemiyor.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Eğitimine devam et. Daha güçlü gladyatörler yetiştir. İtibar kazan. Sezar'ın gözüne girmek için Colosseum'da zafer kazan. Ama dikkatli ol, seni tanıyabilir. Hazır olmalısın.",
+          "speaker": "Dayı"
+        }
+      ]
+    },
+    {
+      "id": "story_3",
+      "dialogues": [
+        {
+          "text": "Oğlum, artık gerçek bir gladyatör oldun. Sezar'ın dikkatini çekmeye başladın.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Onun casusları senin hakkında bilgi topluyor. Ama henüz gerçek kimliğini bilmiyorlar. Eğer hala inanmıyorsan, bu senin seçimin. Ama bir gün gerçekle karşılaştığında, ben burada olacağım.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Zaman yaklaşıyor. Bir gün Sezar ile yüzleşeceksin. O gün geldiğinde, hazır olmalısın. İntikam hızlı olmamalı. Önce güçlen, sonra fırsatını bekle. Sezar çok güçlü. Onu yenmek için sadece güç değil, zeka da gerekiyor.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Annen sana bir şey bıraktı. Bir yüzük. Sezar'ın ailesine ait. Bu, senin kimliğinin kanıtı. İşte burada. Annenin son armağanı. Bunu Sezar'a gösterdiğinde, o seni tanıyacak. Ama dikkatli ol. Bu yüzük hem güç hem de tehlike getirir. Bunu sakla, bir gün işine yarayacak.",
+          "speaker": "Dayı"
+        }
+      ]
+    },
+    {
+      "id": "story_4",
+      "dialogues": [
+        {
+          "text": "Oğlum, itibarın artıyor. Roma'da adın duyulmaya başladı. Bu iyi bir şey ama aynı zamanda tehlikeli.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Sezar'ın gözüne girmek için Colosseum'da zafer kazanmalısın. Ama dikkatli ol, seni tanıyabilir. Stratejik ol. Güçlen ama fazla dikkat çekme. Doğru zamanı bekle.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Annen, Sezar'ın gerçek yüzünü öğrendiğinde, seni bana bıraktı ve kaçtı. O günden beri seni koruyorum. Şimdi sıra sende. Bu gladyatör okulunda eğitileceksin, güçleneceksin ve sonunda Sezar'ı yeneceksin.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Korku normal. Ama korku seni durdurmamalı. Annen seni korumak için kaçtı, sen de kendini korumalısın. Güçlen, hazırlan. Korku seni zayıflatmasın.",
+          "speaker": "Dayı"
+        }
+      ]
+    },
+    {
+      "id": "story_5",
+      "dialogues": [
+        {
+          "text": "Oğlum, artık güçlü bir ludus sahibisin. Gladyatörlerin seni takip ediyor, itibarın yükseliyor.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Sezar'ın sarayından haberler geldi. Seni arıyorlar ama henüz kim olduğunu bilmiyorlar. Bak, burada kanıtlar var. Annenin bıraktığı mektup, Sezar'ın seni arayan adamlarına verdiği emirler...",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Zaman yaklaşıyor. Hazır ol. İntikam hızlı olmamalı ama hazırlıksız da olmamalısın. Hazır olmak için daha fazla zaman yok. Sezar seni bulmaya çalışıyor. Güçlenmeye devam et, ama artık daha hızlı olmalısın.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Annenin ruhu seni izliyor. Ona layık ol. Cesur konuşuyorsun. Ama acele etme. Doğru zamanı bekle. Sezar'ı yenmek için sadece güç yetmez. Strateji, sabır ve zeka gerekiyor.",
+          "speaker": "Dayı"
+        }
+      ]
+    },
+    {
+      "id": "story_6",
+      "dialogues": [
+        {
+          "text": "Oğlum, artık Roma'nın en güçlü ludus sahiplerinden birisin. Sezar'ın dikkatini çektin.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Onun gözünde sadece başka bir lanista'sın. Ama sen onun oğlusun. Bu gerçeği bir gün öğrenecek. Görüyorsun, gerçek bu. Sezar seni öldürmek istiyor. Ama sen, onun oğlusun. Sen de o kadar güçlü olabilirsin.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Son hazırlıklarını yap. Zaman geldiğinde, gerçek kimliğini ortaya çıkaracaksın. Bu yol zorlu olacak, ama sen güçlüsün. Sezar'ın oğlusun, onun kadar güçlü olabilirsin.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Ben her zaman yanında olacağım. Seni koruyacağım, tıpkı annenin istediği gibi. Her adımda yanında olacağım. Hazır mısın?",
+          "speaker": "Dayı"
+        }
+      ]
+    },
+    {
+      "id": "story_7",
+      "dialogues": [
+        {
+          "text": "Oğlum, Roma'nın sokaklarında senin hakkında konuşmalar duyuyorum. İtibarın her geçen gün artıyor.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Bu iyi bir şey ama aynı zamanda tehlikeli. Sezar'ın kulakları her yerde. Senin başarıların onun dikkatini çekiyor. Ama henüz gerçek kimliğini bilmiyor.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Gladyatörlerin güçleniyor. Bu senin gücünü gösteriyor. Ama unutma, Sezar'ın ordusu çok büyük. Tek başına savaşamazsın. Müttefikler bulmalısın.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Diplomasi önemli. Senatörlerle konuş, rakiplerinle anlaş. Sezar'ı yenmek için sadece güç yetmez. Siyaset de gerekiyor.",
+          "speaker": "Dayı"
+        }
+      ]
+    },
+    {
+      "id": "story_8",
+      "dialogues": [
+        {
+          "text": "Oğlum, artık Roma'nın en zengin ludus sahiplerinden birisin. Altınların artıyor, gladyatörlerin güçleniyor.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Ama unutma, Sezar'ın hazinesi seninkinden çok daha büyük. Onunla rekabet edemezsin. Stratejik olmalısın. Gücünü doğru yerde kullan.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Colosseum'da zafer kazanmak önemli. Ama her zafer seni Sezar'a daha yakın getiriyor. Dikkatli ol. Bir gün seni tanıyacak ve o zaman gerçek sınav başlayacak.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Annenin mektubunu hatırla. 'Oğlumu koru' diyordu. Ben seni koruyorum ama sen de kendini korumalısın. Hazır ol.",
+          "speaker": "Dayı"
+        }
+      ]
+    },
+    {
+      "id": "story_9",
+      "dialogues": [
+        {
+          "text": "Oğlum, zaman hızla geçiyor. Artık gerçek bir lider oldun. Gladyatörlerin sana saygı duyuyor, rakiplerin seni kıskanıyor.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Sezar'ın sarayından yeni haberler var. Seni arayan casuslar daha aktif hale geldi. Ama henüz buraya ulaşamadılar. Okulumuz hala güvenli.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Ancak bu sonsuza kadar sürmeyecek. Bir gün gerçekle yüzleşeceksin. O gün geldiğinde, hazır olmalısın. Hem fiziksel hem de zihinsel olarak güçlü olmalısın.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Annenin yüzüğü hala yanında mı? O yüzük senin kimliğinin kanıtı. Bir gün Sezar'a göstereceksin ve o zaman gerçek sınav başlayacak. Hazır ol.",
+          "speaker": "Dayı"
+        }
+      ]
+    },
+    {
+      "id": "story_10",
+      "dialogues": [
+        {
+          "text": "Oğlum, artık Roma'nın en güçlü ludus sahiplerinden birisin. Sezar'ın gözünde sadece başka bir rakip olabilirsin ama sen onun oğlusun.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Zaman yaklaşıyor. Artık son hazırlıklarını yapmalısın. Sezar ile yüzleşme zamanı geldiğinde, gerçek kimliğini ortaya çıkaracaksın.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Annenin ruhu seni izliyor. Ona layık olmalısın. Sezar'ı yenmek için sadece güç, zeka ve strateji yetmez. Cesaret de gerekiyor. Ve sen cesursun.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Ben her zaman yanında olacağım. Seni koruyacağım, tıpkı annenin istediği gibi. Ama artık sen de kendini koruyabilirsin. Hazır mısın oğlum? Gerçek sınav başlıyor.",
+          "speaker": "Dayı"
+        }
+      ]
+    },
+    {
+      "id": "story_11",
+      "dialogues": [
+        {
+          "text": "Oğlum, artık çok güçlü bir ludus sahibisin. Roma'da adın her yerde duyuluyor. Sezar'ın dikkatini çektin.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Onun sarayından gelen haberler endişe verici. Seni arayan casuslar daha da aktif. Ama henüz gerçek kimliğini bilmiyorlar. Bu fırsatı iyi kullan.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Artık sadece güçlenmek yetmez. Strateji önemli. Sezar'ın zayıf noktalarını bulmalısın. Onun düşmanlarıyla ittifak kurmalısın.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Annenin yüzüğü senin en değerli hazinen. Onu kaybetme. Bir gün Sezar'a göstereceksin ve o zaman gerçek sınav başlayacak.",
+          "speaker": "Dayı"
+        }
+      ]
+    },
+    {
+      "id": "story_12",
+      "dialogues": [
+        {
+          "text": "Oğlum, artık Roma'nın en saygın ludus sahiplerinden birisin. Senatörler seninle görüşmek istiyor, rakiplerin seni kıskanıyor.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Ama dikkatli ol. Sezar'ın gözü her yerde. Her hareketin izleniyor. Stratejik olmalısın. Gücünü göstermek için doğru zamanı bekle.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Colosseum'da zafer kazanmak önemli ama her zafer seni Sezar'a daha yakın getiriyor. Bir gün seni tanıyacak ve o zaman gerçek sınav başlayacak.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Annenin mektubunu hatırla. 'Oğlumu koru' diyordu. Ben seni koruyorum ama sen de kendini korumalısın. Hazır ol.",
+          "speaker": "Dayı"
+        }
+      ]
+    },
+    {
+      "id": "story_13",
+      "dialogues": [
+        {
+          "text": "Oğlum, zaman geçiyor ve sen güçleniyorsun. Artık Roma'nın en güçlü ludus sahiplerinden birisin.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Sezar'ın sarayından yeni haberler var. Seni arayan casuslar daha da aktif hale geldi. Ama henüz buraya ulaşamadılar. Okulumuz hala güvenli.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Ancak bu sonsuza kadar sürmeyecek. Bir gün gerçekle yüzleşeceksin. O gün geldiğinde, hazır olmalısın. Hem fiziksel hem de zihinsel olarak güçlü olmalısın.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Annenin ruhu seni izliyor. Ona layık ol. Sezar'ı yenmek için sadece güç yetmez. Strateji, sabır ve zeka gerekiyor.",
+          "speaker": "Dayı"
+        }
+      ]
+    },
+    {
+      "id": "story_14",
+      "dialogues": [
+        {
+          "text": "Oğlum, artık Roma'nın en zengin ve güçlü ludus sahibisin. Gladyatörlerin seni takip ediyor, itibarın yükseliyor.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Sezar'ın dikkatini çektin. Onun gözünde sadece başka bir rakip olabilirsin ama sen onun oğlusun. Bu gerçeği bir gün öğrenecek.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Zaman yaklaşıyor. Artık son hazırlıklarını yapmalısın. Sezar ile yüzleşme zamanı geldiğinde, gerçek kimliğini ortaya çıkaracaksın.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Annenin yüzüğü senin en değerli hazinen. Onu kaybetme. Bir gün Sezar'a göstereceksin ve o zaman gerçek sınav başlayacak. Hazır ol.",
+          "speaker": "Dayı"
+        }
+      ]
+    },
+    {
+      "id": "story_15",
+      "dialogues": [
+        {
+          "text": "Oğlum, artık Roma'nın en güçlü ludus sahibisin. Sezar'ın gözünde sadece başka bir rakip olabilirsin ama sen onun oğlusun.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Zaman yaklaşıyor. Artık son hazırlıklarını yapmalısın. Sezar ile yüzleşme zamanı geldiğinde, gerçek kimliğini ortaya çıkaracaksın.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Annenin ruhu seni izliyor. Ona layık olmalısın. Sezar'ı yenmek için sadece güç, zeka ve strateji yetmez. Cesaret de gerekiyor. Ve sen cesursun.",
+          "speaker": "Dayı"
+        },
+        {
+          "text": "Ben her zaman yanında olacağım. Seni koruyacağım, tıpkı annenin istediği gibi. Ama artık sen de kendini koruyabilirsin. Hazır mısın oğlum? Gerçek sınav başlıyor.",
+          "speaker": "Dayı"
+        }
+      ]
+    }
+  ]
+}

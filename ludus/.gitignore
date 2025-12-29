@@ -48,3 +48,5 @@ app.*.map.json
 /web
 /windows/
 /windows/
+/linux/
+/windows/
