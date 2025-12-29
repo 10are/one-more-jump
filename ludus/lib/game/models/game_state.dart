@@ -148,6 +148,10 @@ class GameState {
   bool hasChild; // Çocuk var mı?
   int dialogueIndex; // Hangi diyalogda (haftalık)
 
+  // Haftalık hikayeler
+  List<int> storyWeeks; // Hangi haftalarda story gösterilecek (rastgele belirlenir)
+  Set<String> seenStories; // Görülen story ID'leri
+
   GameState({
     this.phase = GamePhase.menu,
     this.gold = GameConstants.startingGold,
@@ -163,11 +167,15 @@ class GameState {
     this.wifeMorale = 50,
     this.hasChild = false,
     this.dialogueIndex = 0,
+    List<int>? storyWeeks,
+    Set<String>? seenStories,
   })  : gladiators = gladiators ?? createStartingGladiators(),
         fights = fights ?? _createInitialFights(),
         rivals = rivals ?? _createRivals(),
         staff = staff ?? _createInitialStaff(),
-        activeMissions = activeMissions ?? [];
+        activeMissions = activeMissions ?? [],
+        storyWeeks = storyWeeks ?? [],
+        seenStories = seenStories ?? {};
 
   // Savaşabilir gladyatörler
   List<Gladiator> get availableForFight => gladiators.where((g) => g.canFight).toList();
@@ -245,6 +253,8 @@ class GameState {
     wifeMorale = 50;
     hasChild = false;
     dialogueIndex = 0;
+    storyWeeks = [];
+    seenStories = {};
   }
 }
 
