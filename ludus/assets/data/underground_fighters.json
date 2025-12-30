@@ -11,7 +11,7 @@
       "stamina": 50,
       "reward": 100,
       "reputation_reward": 5,
-      "image": "assets/defaultasker.png",
+      "image": "assets/gladiators/under_1.png",
       "defeated": false
     },
     {
@@ -25,7 +25,7 @@
       "stamina": 60,
       "reward": 150,
       "reputation_reward": 8,
-      "image": "assets/defaultasker.png",
+      "image": "assets/gladiators/under_2.png",
       "defeated": false
     },
     {
@@ -39,7 +39,7 @@
       "stamina": 55,
       "reward": 120,
       "reputation_reward": 6,
-      "image": "assets/defaultasker.png",
+      "image": "assets/gladiators/under_3.png",
       "defeated": false
     },
     {
@@ -53,7 +53,7 @@
       "stamina": 65,
       "reward": 180,
       "reputation_reward": 10,
-      "image": "assets/defaultasker.png",
+      "image": "assets/gladiators/under_4.png",
       "defeated": false
     },
     {
@@ -67,7 +67,7 @@
       "stamina": 70,
       "reward": 200,
       "reputation_reward": 12,
-      "image": "assets/defaultasker.png",
+      "image": "assets/gladiators/under_5.png",
       "defeated": false
     },
     {
@@ -81,7 +81,7 @@
       "stamina": 75,
       "reward": 300,
       "reputation_reward": 20,
-      "image": "assets/defaultasker.png",
+      "image": "assets/gladiators/under_6.png",
       "defeated": false
     }
   ]

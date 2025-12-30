@@ -11,7 +11,7 @@
       "stamina": 90,
       "reward": 1000,
       "reputation_reward": 100,
-      "image": "assets/defaultasker.png",
+      "image": "assets/gladiators/coloseum_1.png",
       "week": 5,
       "defeated": false
     },
@@ -26,7 +26,7 @@
       "stamina": 85,
       "reward": 1500,
       "reputation_reward": 150,
-      "image": "assets/defaultasker.png",
+      "image": "assets/gladiators/coloseum_2.png",
       "week": 10,
       "defeated": false
     },
@@ -41,7 +41,7 @@
       "stamina": 95,
       "reward": 2000,
       "reputation_reward": 200,
-      "image": "assets/defaultasker.png",
+      "image": "assets/gladiators/coloseum_3.png",
       "week": 15,
       "defeated": false
     },
@@ -56,7 +56,7 @@
       "stamina": 88,
       "reward": 2500,
       "reputation_reward": 250,
-      "image": "assets/defaultasker.png",
+      "image": "assets/gladiators/coloseum_4.png",
       "week": 20,
       "defeated": false
     },
@@ -71,7 +71,7 @@
       "stamina": 100,
       "reward": 3500,
       "reputation_reward": 350,
-      "image": "assets/defaultasker.png",
+      "image": "assets/gladiators/coloseum_5.png",
       "week": 25,
       "defeated": false
     },
@@ -86,7 +86,7 @@
       "stamina": 95,
       "reward": 5000,
       "reputation_reward": 500,
-      "image": "assets/defaultasker.png",
+      "image": "assets/gladiators/coloseum_6.png",
       "week": 30,
       "defeated": false
     }
