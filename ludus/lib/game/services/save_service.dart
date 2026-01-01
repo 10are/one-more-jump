@@ -111,10 +111,11 @@ class SaveService {
       'hasWife': state.hasWife,
       'wifeName': state.wifeName,
       'wifeMorale': state.wifeMorale,
-      'hasChild': state.hasChild,
+      'children': state.children.map((c) => _childToJson(c)).toList(),
       'dialogueIndex': state.dialogueIndex,
-      'storyWeeks': state.storyWeeks,
       'seenStories': state.seenStories.toList(),
+      'seenEvents': state.seenEvents.toList(),
+      'storyChoices': state.storyChoices,
       'savedAt': DateTime.now().toIso8601String(),
     };
   }
@@ -144,13 +145,20 @@ class SaveService {
       hasWife: json['hasWife'] as bool,
       wifeName: json['wifeName'] as String,
       wifeMorale: json['wifeMorale'] as int,
-      hasChild: json['hasChild'] as bool,
-      dialogueIndex: json['dialogueIndex'] as int,
-      storyWeeks: json['storyWeeks'] != null 
-          ? List<int>.from(json['storyWeeks'] as List)
+      children: json['children'] != null
+          ? (json['children'] as List)
+              .map((c) => _childFromJson(c as Map<String, dynamic>))
+              .toList()
           : null,
+      dialogueIndex: json['dialogueIndex'] as int,
       seenStories: json['seenStories'] != null
           ? Set<String>.from(json['seenStories'] as List)
+          : null,
+      seenEvents: json['seenEvents'] != null
+          ? Set<String>.from(json['seenEvents'] as List)
+          : null,
+      storyChoices: json['storyChoices'] != null
+          ? Map<String, bool>.from(json['storyChoices'] as Map)
           : null,
     );
     return state;
@@ -333,6 +341,26 @@ class SaveService {
       remainingWeeks: json['remainingWeeks'] as int? ?? 1,
       isCompleted: json['isCompleted'] as bool? ?? false,
       isFailed: json['isFailed'] as bool? ?? false,
+    );
+  }
+
+  /// Child -> JSON
+  static Map<String, dynamic> _childToJson(Child c) {
+    return {
+      'id': c.id,
+      'name': c.name,
+      'isMale': c.isMale,
+      'birthWeek': c.birthWeek,
+    };
+  }
+
+  /// JSON -> Child
+  static Child _childFromJson(Map<String, dynamic> json) {
+    return Child(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      isMale: json['isMale'] as bool,
+      birthWeek: json['birthWeek'] as int,
     );
   }
 

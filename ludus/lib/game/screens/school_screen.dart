@@ -1217,8 +1217,11 @@ class _SchoolScreenState extends State<SchoolScreen> {
   }
 
   void _tryForChild(GladiatorGame game) {
-    final success = game.tryForChild();
-    if (success) _showPopup('VARIS', true, 'Bir varise sahip oldunuz! +50 Itibar');
+    final child = game.tryForChild();
+    if (child != null) {
+      final genderText = child.isMale ? 'erkek' : 'kız';
+      _showPopup('VARIS', true, 'Bir $genderText cocugunuz oldu: ${child.name}! +50 Itibar');
+    }
   }
 
   void _showTrainDialog(dynamic gladiator, GladiatorGame game) {

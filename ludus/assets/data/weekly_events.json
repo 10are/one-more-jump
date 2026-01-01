@@ -1,0 +1,280 @@
+{
+  "event_types": ["wife", "doctore", "gladiator", "random"],
+  "weekly_events": [
+    {
+      "id": "event_wife_necklace",
+      "type": "wife",
+      "week_min": 1,
+      "week_max": 99,
+      "chance": 30,
+      "requires_wife": true,
+      "speaker": "Lucretia",
+      "speaker_image": "assets/wife.png",
+      "dialogue": "Kocacigim, pazarda cok guzel bir kolye gordum. Beni ne kadar sevdigini gostermek istemez misin?",
+      "choice": {
+        "question": "Lucretia'nin istegi:",
+        "cost_gold": 150,
+        "options": [
+          {
+            "text": "Tabii ki canim, sana hemen alayim (150 altin)",
+            "requires_gold": 150,
+            "effects": {
+              "gold": -150,
+              "wife_morale": 15
+            },
+            "result_message": "Lucretia cok mutlu oldu! Es morali +15"
+          },
+          {
+            "text": "Simdi param yok, baska zaman",
+            "effects": {
+              "wife_morale": -10
+            },
+            "result_message": "Lucretia hayal kirikligi yasadi. Es morali -10"
+          }
+        ]
+      }
+    },
+    {
+      "id": "event_wife_child",
+      "type": "wife",
+      "week_min": 5,
+      "week_max": 99,
+      "chance": 25,
+      "requires_wife": true,
+      "requires_no_child": true,
+      "min_wife_morale": 70,
+      "speaker": "Lucretia",
+      "speaker_image": "assets/wife.png",
+      "dialogue": "Kocacigim, artik bir cocuk sahibi olmak istiyorum. Ailemizi buyutelim mi?",
+      "choice": {
+        "question": "Lucretia cocuk istiyor:",
+        "options": [
+          {
+            "text": "Evet, harika bir fikir!",
+            "effects": {
+              "wife_morale": 20,
+              "trigger_child": true
+            },
+            "result_message": "Lucretia cok mutlu! Yakin zamanda bir bebek bekliyorsunuz!"
+          },
+          {
+            "text": "Henuz hazir degilim",
+            "effects": {
+              "wife_morale": -15
+            },
+            "result_message": "Lucretia uzuldu. Es morali -15"
+          }
+        ]
+      }
+    },
+    {
+      "id": "event_doctore_advice_market",
+      "type": "doctore",
+      "week_min": 1,
+      "week_max": 5,
+      "chance": 40,
+      "speaker": "Doctore",
+      "speaker_image": "assets/defaultasker.png",
+      "dialogue": "Efendim, gladyatorlerimiz iyi egitilmis ama sayimiz az. Pazara gidip yeni savascilar almalisiniz. Guclenmek icin daha fazla adama ihtiyacimiz var.",
+      "choice": {
+        "question": "Doctore'nin tavsiyesi:",
+        "options": [
+          {
+            "text": "Haklisin, pazara bakacagim",
+            "effects": {},
+            "result_message": "Doctore basini salladi. Pazardan yeni gladyatorler alabilirsiniz."
+          },
+          {
+            "text": "Simdilik idare ederiz",
+            "effects": {},
+            "result_message": "Doctore omuz silkti."
+          }
+        ]
+      }
+    },
+    {
+      "id": "event_doctore_training",
+      "type": "doctore",
+      "week_min": 2,
+      "week_max": 99,
+      "chance": 35,
+      "speaker": "Doctore",
+      "speaker_image": "assets/defaultasker.png",
+      "dialogue": "Efendim, gladyatorler iyi calisiyor ama daha yogun antrenmana ihtiyaclari var. Okula gidip onlari egitmeli, yemek ve su alarak performanslarini artirmalisiniz.",
+      "choice": {
+        "question": "Doctore'nin onerisi:",
+        "options": [
+          {
+            "text": "Dogru, hemen ilgileneyim",
+            "effects": {},
+            "result_message": "Doctore memnun kaldi. Okul ekranindan gladyatorleri egitebilirsiniz."
+          },
+          {
+            "text": "Simdlik yeterli",
+            "effects": {},
+            "result_message": "Doctore sustu."
+          }
+        ]
+      }
+    },
+    {
+      "id": "event_gladiator_sick_wife",
+      "type": "gladiator",
+      "week_min": 2,
+      "week_max": 99,
+      "chance": 25,
+      "requires_gladiator": true,
+      "speaker_from_gladiator": true,
+      "speaker_image": "assets/defaultasker.png",
+      "dialogue": "Efendim, karim cok hasta. Doktora goturmem icin 50 altina ihtiyacim var. Lutfen yardim edin.",
+      "choice": {
+        "question": "Gladyatorun istegi:",
+        "cost_gold": 50,
+        "options": [
+          {
+            "text": "Al sana 50 altin, ailenle ilgilen",
+            "requires_gold": 50,
+            "effects": {
+              "gold": -50,
+              "gladiator_morale": 20
+            },
+            "result_message": "Gladyator minnettarligini ifade etti. Morali +20 artti!"
+          },
+          {
+            "text": "Benim derdim yeter, seninki de mi?",
+            "effects": {
+              "gladiator_morale": -15
+            },
+            "result_message": "Gladyator uzgun bir sekilde gitti. Morali -15 dustu."
+          }
+        ]
+      }
+    },
+    {
+      "id": "event_gladiator_freedom",
+      "type": "gladiator",
+      "week_min": 8,
+      "week_max": 99,
+      "chance": 15,
+      "requires_gladiator": true,
+      "min_gladiator_wins": 5,
+      "speaker_from_gladiator": true,
+      "speaker_image": "assets/defaultasker.png",
+      "dialogue": "Efendim, yillardir sadakatle savaştim. Ozgurlugumu satin almak istiyorum. 500 altin teklif ediyorum.",
+      "choice": {
+        "question": "Gladyator ozgurluk istiyor:",
+        "options": [
+          {
+            "text": "Hakkettin, ozgursun (500 altin al)",
+            "effects": {
+              "gold": 500,
+              "remove_gladiator": true,
+              "reputation": 10
+            },
+            "result_message": "Gladyatoru ozgur biraktiniz. 500 altin ve +10 itibar kazandiniz!"
+          },
+          {
+            "text": "Hayir, sen benim icin degerlisin",
+            "effects": {
+              "gladiator_morale": -25
+            },
+            "result_message": "Gladyator hayal kirikligi yasadi. Morali cok dustu."
+          }
+        ]
+      }
+    },
+    {
+      "id": "event_wife_dress",
+      "type": "wife",
+      "week_min": 3,
+      "week_max": 99,
+      "chance": 25,
+      "requires_wife": true,
+      "speaker": "Lucretia",
+      "speaker_image": "assets/wife.png",
+      "dialogue": "Kocacigim, senatorde bir davet var. Yeni bir elbise almam lazim, 100 altin yeter.",
+      "choice": {
+        "question": "Lucretia'nin istegi:",
+        "cost_gold": 100,
+        "options": [
+          {
+            "text": "Tabi ki, en guzel elbiseyi al (100 altin)",
+            "requires_gold": 100,
+            "effects": {
+              "gold": -100,
+              "wife_morale": 10,
+              "reputation": 5
+            },
+            "result_message": "Lucretia mutlu oldu! Es morali +10, Itibar +5"
+          },
+          {
+            "text": "Eski elbiselerin guzel, onlari giy",
+            "effects": {
+              "wife_morale": -8
+            },
+            "result_message": "Lucretia somurttu. Es morali -8"
+          }
+        ]
+      }
+    },
+    {
+      "id": "event_gladiator_gambling_debt",
+      "type": "gladiator",
+      "week_min": 4,
+      "week_max": 99,
+      "chance": 20,
+      "requires_gladiator": true,
+      "speaker_from_gladiator": true,
+      "speaker_image": "assets/defaultasker.png",
+      "dialogue": "Efendim... Kumar borcum var. 80 altin vermezseniz beni oldururler. Lutfen!",
+      "choice": {
+        "question": "Gladyatorun kumar borcu:",
+        "cost_gold": 80,
+        "options": [
+          {
+            "text": "Bu son kez! Al 80 altini",
+            "requires_gold": 80,
+            "effects": {
+              "gold": -80,
+              "gladiator_morale": 15
+            },
+            "result_message": "Gladyator rahat bir nefes aldi. Morali +15 artti."
+          },
+          {
+            "text": "Kendi sorununu kendin coz",
+            "effects": {
+              "gladiator_morale": -20,
+              "gladiator_health": -10
+            },
+            "result_message": "Gladyator dovulmus sekilde dondu. Morali -20, Sagligi -10."
+          }
+        ]
+      }
+    },
+    {
+      "id": "event_doctore_arena_warning",
+      "type": "doctore",
+      "week_min": 3,
+      "week_max": 10,
+      "chance": 30,
+      "speaker": "Doctore",
+      "speaker_image": "assets/defaultasker.png",
+      "dialogue": "Efendim, arena dovusleri tehlikeli. Gladyatorlerinizi iyi hazirlayın. Arenaya girmeden once sagliklarinin tam olduguna emin olun.",
+      "choice": {
+        "question": "Doctore'nin uyarisi:",
+        "options": [
+          {
+            "text": "Tesekkurler, dikkat edecegim",
+            "effects": {},
+            "result_message": "Doctore basini egdi."
+          },
+          {
+            "text": "Endiselenmene gerek yok",
+            "effects": {},
+            "result_message": "Doctore kaygili bir sekilde uzaklasti."
+          }
+        ]
+      }
+    }
+  ]
+}

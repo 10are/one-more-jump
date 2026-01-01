@@ -67,6 +67,24 @@ enum StaffRole { doctor, trainer, servant }
 // Görev türleri
 enum MissionType { fixFight, rentGladiator, sabotage, senatorFavor, training, poison, bribe, patronage }
 
+// Çocuk sınıfı
+class Child {
+  final String id;
+  final String name;
+  final bool isMale; // true = erkek, false = kız
+  int birthWeek; // Doğduğu hafta
+
+  Child({
+    required this.id,
+    required this.name,
+    required this.isMale,
+    required this.birthWeek,
+  });
+
+  // Çocuğun yaşı (hafta olarak)
+  int ageInWeeks(int currentWeek) => currentWeek - birthWeek;
+}
+
 // Aktif görev
 class ActiveMission {
   final String id;
@@ -145,12 +163,15 @@ class GameState {
   bool hasWife;
   String wifeName;
   int wifeMorale; // Eşin morali (0-100)
-  bool hasChild; // Çocuk var mı?
+  List<Child> children; // Çocuklar listesi
   int dialogueIndex; // Hangi diyalogda (haftalık)
 
   // Haftalık hikayeler
-  List<int> storyWeeks; // Hangi haftalarda story gösterilecek (rastgele belirlenir)
   Set<String> seenStories; // Görülen story ID'leri
+  Set<String> seenEvents; // Görülen event ID'leri
+
+  // İnteraktif hikaye seçimleri (oyuncunun kararları)
+  Map<String, bool> storyChoices; // Örn: {"helped_stranger": true, "trusted_uncle": false}
 
   GameState({
     this.phase = GamePhase.menu,
@@ -165,17 +186,20 @@ class GameState {
     this.hasWife = true,
     this.wifeName = 'Lucretia',
     this.wifeMorale = 50,
-    this.hasChild = false,
+    List<Child>? children,
     this.dialogueIndex = 0,
-    List<int>? storyWeeks,
     Set<String>? seenStories,
+    Set<String>? seenEvents,
+    Map<String, bool>? storyChoices,
   })  : gladiators = gladiators ?? createStartingGladiators(),
         fights = fights ?? _createInitialFights(),
         rivals = rivals ?? _createRivals(),
         staff = staff ?? _createInitialStaff(),
         activeMissions = activeMissions ?? [],
-        storyWeeks = storyWeeks ?? [],
-        seenStories = seenStories ?? {};
+        children = children ?? [],
+        seenStories = seenStories ?? {},
+        seenEvents = seenEvents ?? {},
+        storyChoices = storyChoices ?? {};
 
   // Savaşabilir gladyatörler
   List<Gladiator> get availableForFight => gladiators.where((g) => g.canFight).toList();
@@ -228,13 +252,22 @@ class GameState {
     wifeMorale = (wifeMorale + amount).clamp(0, 100);
   }
 
-  // Çocuk sahibi ol (moral 100 olmalı)
-  bool tryForChild() {
-    if (wifeMorale >= 100 && !hasChild) {
-      hasChild = true;
-      return true;
+  // Çocuk var mı?
+  bool get hasChild => children.isNotEmpty;
+
+  // Çocuk sahibi ol (moral 80+ olmalı)
+  Child? addChild(String name, bool isMale) {
+    if (wifeMorale >= 80 && hasWife) {
+      final child = Child(
+        id: 'child_${children.length + 1}',
+        name: name,
+        isMale: isMale,
+        birthWeek: week,
+      );
+      children.add(child);
+      return child;
     }
-    return false;
+    return null;
   }
 
   // Oyunu sıfırla
@@ -251,10 +284,11 @@ class GameState {
     hasWife = true;
     wifeName = 'Lucretia';
     wifeMorale = 50;
-    hasChild = false;
+    children = [];
     dialogueIndex = 0;
-    storyWeeks = [];
     seenStories = {};
+    seenEvents = {};
+    storyChoices = {};
   }
 }
 

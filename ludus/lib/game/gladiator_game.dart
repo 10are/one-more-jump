@@ -18,113 +18,257 @@ class GladiatorGame extends ChangeNotifier {
   // Oyunu başlat
   void startGame() {
     state.reset();
-    _initializeStoryWeeks();
     notifyListeners();
   }
 
-  // Story haftalarını başlat (rastgele belirle)
-  void _initializeStoryWeeks() {
-    if (state.storyWeeks.isNotEmpty) return; // Zaten belirlenmişse tekrar yapma
-    
-    state.storyWeeks = [];
-    state.seenStories = {};
-    
-    // JSON'dan story'leri yükle ve rastgele haftalar belirle
-    // Bu kısım hafta geçişinde kontrol edilecek
-  }
+  // === İNTERAKTİF HİKAYE SİSTEMİ ===
 
-  // Mevcut hafta için story var mı kontrol et
-  String? getCurrentWeekStoryId() {
-    // Story haftaları henüz belirlenmemişse belirle
-    if (state.storyWeeks.isEmpty) {
-      _determineStoryWeeks();
-    }
-    
-    // Bu hafta için story var mı?
-    if (state.storyWeeks.contains(state.week)) {
-      return _getStoryIdForWeek(state.week);
-    }
-    return null;
-  }
+  // Cache for loaded stories
+  List<Map<String, dynamic>>? _cachedStories;
 
-  // Hafta için story ID'sini döndür
-  String? _getStoryIdForWeek(int week) {
-    // Story haftaları sıralı, hangi story bu haftaya ait?
-    final allStories = _loadAllStoryIds();
-    final weekIndex = state.storyWeeks.indexOf(week);
-    
-    if (weekIndex >= 0 && weekIndex < allStories.length) {
-      return allStories[weekIndex];
-    }
-    return null;
-  }
+  // JSON'dan story'leri yükle (async)
+  Future<List<Map<String, dynamic>>> loadStories() async {
+    if (_cachedStories != null) return _cachedStories!;
 
-  // Story haftalarını rastgele belirle
-  void _determineStoryWeeks() {
-    state.storyWeeks = [];
-    
-    // İlk story her zaman 5. haftada
-    state.storyWeeks.add(5);
-    
-    // JSON'dan tüm story'leri yükle
-    final allStories = _loadAllStoryIds();
-    
-    // Kalan story'ler için rastgele haftalar belirle
-    int lastStoryWeek = 5;
-    
-    for (int i = 1; i < allStories.length; i++) {
-      int minGap;
-      int extraGap;
-      
-      // 10. haftadan önce: 3-4 hafta arası
-      // 10. haftadan sonra: minimum 5 hafta arası
-      if (lastStoryWeek < 10) {
-        minGap = 3; // Minimum 3 hafta
-        extraGap = 1; // Ekstra 0-1 hafta (toplam 3-4 hafta)
-      } else {
-        minGap = 5; // Minimum 5 hafta
-        extraGap = 2; // Ekstra 0-2 hafta (toplam 5-7 hafta)
-      }
-      
-      // Son story'den en az minGap + extraGap hafta sonra
-      int nextWeek = lastStoryWeek + minGap + _random.nextInt(extraGap + 1);
-      nextWeek = nextWeek.clamp(1, 200); // Maksimum 200. haftaya kadar
-      state.storyWeeks.add(nextWeek);
-      lastStoryWeek = nextWeek;
-    }
-    
-    state.storyWeeks.sort();
-  }
-
-  // JSON'dan tüm story ID'lerini yükle
-  List<String> _loadAllStoryIds() {
-    try {
-      // JSON'dan story'leri yükle (async olmadan, cache'lenmiş olabilir)
-      // Şimdilik basit bir yöntem - ileride cache'lenebilir
-      return ['story_1', 'story_2', 'story_3', 'story_4', 'story_5', 'story_6', 'story_7', 'story_8', 'story_9', 'story_10', 'story_11', 'story_12', 'story_13', 'story_14', 'story_15'];
-    } catch (e) {
-      debugPrint('Story ID yükleme hatası: $e');
-      return ['story_1', 'story_2', 'story_3'];
-    }
-  }
-
-  // JSON'dan story sayısını al (async)
-  Future<int> _getStoryCount() async {
     try {
       final String jsonString = await rootBundle.loadString('assets/data/weekly_stories.json');
       final data = json.decode(jsonString);
-      final stories = data['weekly_stories'] as List;
-      return stories.length;
+      _cachedStories = List<Map<String, dynamic>>.from(data['weekly_stories']);
+      return _cachedStories!;
     } catch (e) {
-      debugPrint('Story sayısı yükleme hatası: $e');
-      return 6; // Varsayılan
+      debugPrint('Story yükleme hatası: $e');
+      return [];
     }
+  }
+
+  // Mevcut hafta için story var mı kontrol et (JSON'daki week alanına göre)
+  Future<Map<String, dynamic>?> getCurrentWeekStory() async {
+    final stories = await loadStories();
+
+    for (final story in stories) {
+      final storyWeek = story['week'] as int;
+      final storyId = story['id'] as String;
+
+      // Bu haftanın story'si mi ve henüz görülmemiş mi?
+      if (storyWeek == state.week && !state.seenStories.contains(storyId)) {
+        return story;
+      }
+    }
+    return null;
+  }
+
+  // Story'nin diyaloglarını al (koşullara göre)
+  List<Map<String, dynamic>> getStoryDialogues(Map<String, dynamic> story) {
+    // Eğer conditions varsa, oyuncunun seçimlerine göre doğru diyalogları getir
+    if (story.containsKey('conditions') && story['conditions'] != null) {
+      final conditions = story['conditions'] as List;
+
+      for (final condition in conditions) {
+        final variable = condition['variable'] as String;
+        final requiredValue = condition['value'] as bool;
+
+        // Oyuncunun bu değişken için seçimi var mı?
+        if (state.storyChoices.containsKey(variable)) {
+          final playerChoice = state.storyChoices[variable];
+          if (playerChoice == requiredValue) {
+            return List<Map<String, dynamic>>.from(condition['dialogues']);
+          }
+        }
+      }
+
+      // Eğer eşleşen koşul yoksa, ilk koşulun diyaloglarını döndür
+      if (conditions.isNotEmpty) {
+        return List<Map<String, dynamic>>.from(conditions[0]['dialogues']);
+      }
+    }
+
+    // Normal diyaloglar (koşulsuz)
+    if (story.containsKey('dialogues') && story['dialogues'] != null) {
+      return List<Map<String, dynamic>>.from(story['dialogues']);
+    }
+
+    return [];
   }
 
   // Story görüldü olarak işaretle
   void markStoryAsSeen(String storyId) {
     state.seenStories.add(storyId);
     notifyListeners();
+  }
+
+  // Oyuncunun seçimini kaydet
+  void setStoryChoice(String variable, bool value) {
+    state.storyChoices[variable] = value;
+    notifyListeners();
+  }
+
+  // Belirli bir story değişkeninin değerini al
+  bool? getStoryChoice(String variable) {
+    return state.storyChoices[variable];
+  }
+
+  // === HAFTALIK EVENT SİSTEMİ ===
+
+  // Cache for loaded events
+  List<Map<String, dynamic>>? _cachedEvents;
+
+  // JSON'dan event'leri yükle
+  Future<List<Map<String, dynamic>>> loadEvents() async {
+    if (_cachedEvents != null) return _cachedEvents!;
+
+    try {
+      final String jsonString = await rootBundle.loadString('assets/data/weekly_events.json');
+      final data = json.decode(jsonString);
+      _cachedEvents = List<Map<String, dynamic>>.from(data['weekly_events']);
+      return _cachedEvents!;
+    } catch (e) {
+      debugPrint('Event yükleme hatası: $e');
+      return [];
+    }
+  }
+
+  // Mevcut hafta için uygun event getir (rastgele seçim)
+  Future<Map<String, dynamic>?> getRandomWeeklyEvent() async {
+    final events = await loadEvents();
+    final eligibleEvents = <Map<String, dynamic>>[];
+
+    for (final event in events) {
+      if (_isEventEligible(event)) {
+        eligibleEvents.add(event);
+      }
+    }
+
+    if (eligibleEvents.isEmpty) return null;
+
+    // Şansa göre seçim yap
+    final shuffled = List<Map<String, dynamic>>.from(eligibleEvents)..shuffle(_random);
+
+    for (final event in shuffled) {
+      final chance = event['chance'] as int? ?? 100;
+      if (_random.nextInt(100) < chance) {
+        return event;
+      }
+    }
+
+    // Hiçbiri şansı tutmadıysa ilk uygun eventi döndür
+    return eligibleEvents.isNotEmpty ? eligibleEvents[_random.nextInt(eligibleEvents.length)] : null;
+  }
+
+  // Event uygun mu kontrol et
+  bool _isEventEligible(Map<String, dynamic> event) {
+    final eventId = event['id'] as String;
+
+    // Zaten görülmüş mü?
+    if (state.seenEvents.contains(eventId)) return false;
+
+    // Hafta aralığı kontrolü
+    final weekMin = event['week_min'] as int? ?? 1;
+    final weekMax = event['week_max'] as int? ?? 999;
+    if (state.week < weekMin || state.week > weekMax) return false;
+
+    // Eş gereksinimi
+    if (event['requires_wife'] == true && !state.hasWife) return false;
+
+    // Çocuk yok gereksinimi
+    if (event['requires_no_child'] == true && state.hasChild) return false;
+
+    // Minimum eş morali
+    if (event['min_wife_morale'] != null) {
+      if (state.wifeMorale < (event['min_wife_morale'] as int)) return false;
+    }
+
+    // Gladyatör gereksinimi
+    if (event['requires_gladiator'] == true && state.gladiators.isEmpty) return false;
+
+    // Minimum gladyatör galibiyeti
+    if (event['min_gladiator_wins'] != null) {
+      final minWins = event['min_gladiator_wins'] as int;
+      final hasEligibleGladiator = state.gladiators.any((g) => g.wins >= minWins);
+      if (!hasEligibleGladiator) return false;
+    }
+
+    return true;
+  }
+
+  // Event için konuşmacı gladyatörü seç
+  Gladiator? getEventGladiator(Map<String, dynamic> event) {
+    if (event['speaker_from_gladiator'] != true) return null;
+    if (state.gladiators.isEmpty) return null;
+
+    // Minimum galibiyet gereksinimi varsa ona göre seç
+    if (event['min_gladiator_wins'] != null) {
+      final minWins = event['min_gladiator_wins'] as int;
+      final eligible = state.gladiators.where((g) => g.wins >= minWins).toList();
+      if (eligible.isNotEmpty) {
+        return eligible[_random.nextInt(eligible.length)];
+      }
+    }
+
+    // Rastgele bir gladyatör seç
+    return state.gladiators[_random.nextInt(state.gladiators.length)];
+  }
+
+  // Event seçimi sonucunu uygula
+  EventResult applyEventChoice(Map<String, dynamic> event, Map<String, dynamic> option, Gladiator? targetGladiator) {
+    final effects = option['effects'] as Map<String, dynamic>? ?? {};
+    final resultMessage = option['result_message'] as String? ?? 'Seçim yapıldı.';
+
+    // Altın etkisi
+    if (effects['gold'] != null) {
+      state.modifyGold(effects['gold'] as int);
+    }
+
+    // Eş morali etkisi
+    if (effects['wife_morale'] != null) {
+      state.modifyWifeMorale(effects['wife_morale'] as int);
+    }
+
+    // İtibar etkisi
+    if (effects['reputation'] != null) {
+      state.modifyReputation(effects['reputation'] as int);
+    }
+
+    // Gladyatör moral etkisi
+    if (effects['gladiator_morale'] != null && targetGladiator != null) {
+      targetGladiator.changeMorale(effects['gladiator_morale'] as int);
+    }
+
+    // Gladyatör sağlık etkisi
+    if (effects['gladiator_health'] != null && targetGladiator != null) {
+      targetGladiator.takeDamage(-(effects['gladiator_health'] as int));
+    }
+
+    // Gladyatörü kaldır (özgürlük)
+    if (effects['remove_gladiator'] == true && targetGladiator != null) {
+      state.gladiators.removeWhere((g) => g.id == targetGladiator.id);
+    }
+
+    // Çocuk tetikle
+    Child? newChild;
+    if (effects['trigger_child'] == true) {
+      // Rastgele isim ve cinsiyet
+      final isMale = _random.nextBool();
+      final names = isMale
+          ? ['Marcus', 'Lucius', 'Gaius', 'Titus', 'Quintus', 'Decimus']
+          : ['Julia', 'Livia', 'Cornelia', 'Aurelia', 'Claudia', 'Octavia'];
+      final name = names[_random.nextInt(names.length)];
+      newChild = state.addChild(name, isMale);
+    }
+
+    // Eventi görüldü olarak işaretle
+    markEventAsSeen(event['id'] as String);
+
+    notifyListeners();
+
+    return EventResult(
+      message: resultMessage,
+      child: newChild,
+    );
+  }
+
+  // Event görüldü olarak işaretle
+  void markEventAsSeen(String eventId) {
+    state.seenEvents.add(eventId);
   }
 
   // Kayıttan yükle
@@ -515,14 +659,22 @@ class GladiatorGame extends ChangeNotifier {
   }
 
   // === ÇOCUK SAHİBİ OLMAYI DENE ===
-  bool tryForChild() {
-    if (state.wifeMorale >= 100 && !state.hasChild) {
-      state.hasChild = true;
-      state.reputation += 50; // Varis = itibar
-      notifyListeners();
-      return true;
+  Child? tryForChild() {
+    if (state.wifeMorale >= 80 && state.hasWife) {
+      // Rastgele isim ve cinsiyet
+      final isMale = _random.nextBool();
+      final names = isMale
+          ? ['Marcus', 'Lucius', 'Gaius', 'Titus', 'Quintus', 'Decimus']
+          : ['Julia', 'Livia', 'Cornelia', 'Aurelia', 'Claudia', 'Octavia'];
+      final name = names[_random.nextInt(names.length)];
+      final child = state.addChild(name, isMale);
+      if (child != null) {
+        state.reputation += 50; // Varis = itibar
+        notifyListeners();
+      }
+      return child;
     }
-    return false;
+    return null;
   }
 
   // === DİYALOG İNDEKSİNİ İLERLET ===
@@ -600,19 +752,11 @@ class GladiatorGame extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Hafta geçişinde story kontrolü
+  // Hafta geçişinde story kontrolü (artık JSON'dan hafta bazlı kontrol ediliyor)
+  // Bu metod sadece bir placeholder - asıl kontrol getCurrentWeekStory() ile yapılıyor
   void _checkForWeeklyStory() {
-    // Story haftaları henüz belirlenmemişse belirle
-    if (state.storyWeeks.isEmpty) {
-      _determineStoryWeeks();
-    }
-    
-    // Bu hafta için story var mı?
-    final storyId = _getStoryIdForWeek(state.week);
-    if (storyId != null && !state.seenStories.contains(storyId)) {
-      // Story gösterilecek, bu bilgi home_screen'de kontrol edilecek
-      // Burada sadece hazırlık yapıyoruz
-    }
+    // Story kontrolü artık home_screen'de getCurrentWeekStory() ile yapılıyor
+    // Bu metod geriye dönük uyumluluk için bırakıldı
   }
 }
 
@@ -660,5 +804,16 @@ class SalaryResult {
     required this.totalPaid,
     required this.message,
     required this.rebellionRisk,
+  });
+}
+
+// Event sonucu
+class EventResult {
+  final String message;
+  final Child? child;
+
+  EventResult({
+    required this.message,
+    this.child,
   });
 }
