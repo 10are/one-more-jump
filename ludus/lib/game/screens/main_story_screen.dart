@@ -82,8 +82,89 @@ class _MainStoryScreenState extends State<MainStoryScreen> {
     if (_currentDialogueIndex < dialogues.length - 1) {
       setState(() => _currentDialogueIndex++);
     } else {
-      setState(() => _showChoices = true);
+      // Diyaloglar bitti, seçimleri kontrol et
+      final choices = _getChoices();
+      if (choices.isNotEmpty) {
+        setState(() => _showChoices = true);
+      } else {
+        // Seçim yoksa, chapter_end eventi ise path_specific effects'lerini uygula
+        final eventType = widget.event['type'] as String?;
+        if (eventType == 'chapter_end') {
+          _applyChapterEndEffects();
+        } else {
+          // Normal event, direkt tamamla
+          setState(() => _showChoices = true);
+        }
+      }
     }
+  }
+
+  void _applyChapterEndEffects() {
+    final game = Provider.of<GladiatorGame>(context, listen: false);
+    final path = game.state.mainStory.path;
+    
+    // path_specific içindeki effects'leri uygula
+    if (widget.event['path_specific'] != null) {
+      final pathSpecific = widget.event['path_specific'] as Map<String, dynamic>;
+      String pathKey = 'none';
+      if (path == StoryPath.vengeance) pathKey = 'vengeance';
+      if (path == StoryPath.loyalty) pathKey = 'loyalty';
+
+      if (pathSpecific.containsKey(pathKey)) {
+        final pathData = pathSpecific[pathKey] as Map<String, dynamic>;
+        if (pathData['effects'] != null) {
+          final effects = pathData['effects'] as Map<String, dynamic>;
+          _applyEffects(effects);
+        }
+      }
+    }
+
+    // next_chapter'ı işle
+    if (widget.event['next_chapter'] != null) {
+      final nextChapter = widget.event['next_chapter'] as String;
+      // Chapter güncellemesi updateChapter ile otomatik yapılıyor
+      // Ama next_chapter bilgisini kaydetmek için event görüldü olarak işaretle
+      final eventId = widget.event['id'] as String;
+      game.state.mainStory.seenMainEvents.add(eventId);
+      game.notifyListeners();
+    }
+
+    // Sonuç ekranını göster
+    setState(() {
+      _showResult = true;
+      _resultText = 'Bölüm tamamlandı. Yeni bölüme geçiliyor...';
+    });
+  }
+
+  void _applyEffects(Map<String, dynamic> effects) {
+    final game = Provider.of<GladiatorGame>(context, listen: false);
+
+    // Sezar ilişkisi
+    if (effects['caesar_relation'] != null) {
+      game.state.mainStory.modifyCaesarRelation(effects['caesar_relation'] as int);
+    }
+
+    // Güvenlik
+    if (effects['security'] != null) {
+      game.state.mainStory.modifySecurity(effects['security'] as int);
+    }
+
+    // Komplo ısısı
+    if (effects['conspiracy_heat'] != null) {
+      game.state.mainStory.modifyConspiracyHeat(effects['conspiracy_heat'] as int);
+    }
+
+    // Aile sadakati
+    if (effects['family_loyalty'] != null) {
+      game.state.mainStory.modifyFamilyLoyalty(effects['family_loyalty'] as int);
+    }
+
+    // Chapter progress
+    if (effects['chapter_progress'] != null) {
+      game.state.mainStory.chapterProgress = effects['chapter_progress'] as int;
+    }
+
+    game.notifyListeners();
   }
 
   void _selectChoice(Map<String, dynamic> choice) {
@@ -229,12 +310,19 @@ class _MainStoryScreenState extends State<MainStoryScreen> {
         resultDisplay = '$pathText\n\n$_resultText';
       }
 
+      // chapter_end eventi için özel buton metni
+      final eventType = widget.event['type'] as String?;
+      final eventTitle = widget.event['title'] as String?;
+      final buttonText = eventType == 'chapter_end' 
+          ? (eventTitle ?? 'Yolların Ayrımı') 
+          : 'Devam';
+
       return RomanDialogueScreen(
         dialogueText: resultDisplay,
         topRightWidget: RomanWeekBadge(week: game.state.week, customText: _chapterText),
         choices: [
           DialogueChoice(
-            text: 'Devam',
+            text: buttonText,
             onSelect: widget.onComplete,
           ),
         ],

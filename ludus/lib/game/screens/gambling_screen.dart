@@ -670,151 +670,151 @@ class _Blackjack21GameState extends State<_Blackjack21Game> with TickerProviderS
   // Eskitilmiş antik kart tasarımı - NORMAL SAYILAR
   Widget _buildAntiqueCard(int value, bool hidden) {
     return Container(
-          width: 55,
-          height: 78,
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          decoration: BoxDecoration(
-            // Eskitilmiş parşömen rengi
-            gradient: hidden
-                ? const LinearGradient(
-                    colors: [Color(0xFF6B3FA0), Color(0xFF4A2C7C)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : const LinearGradient(
-                    colors: [
-                      Color(0xFFF5E6C8),
-                      Color(0xFFE8D4A8),
-                      Color(0xFFD4C098),
-                      Color(0xFFC4B088),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    stops: [0.0, 0.3, 0.7, 1.0],
-                  ),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: hidden ? const Color(0xFF9C27B0) : const Color(0xFF6B5344),
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(120),
-                blurRadius: 6,
-                offset: const Offset(2, 3),
-              ),
-            ],
+      width: 55,
+      height: 78,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        // Eskitilmiş parşömen rengi
+        gradient: hidden
+            ? const LinearGradient(
+          colors: [Color(0xFF6B3FA0), Color(0xFF4A2C7C)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        )
+            : const LinearGradient(
+          colors: [
+            Color(0xFFF5E6C8),
+            Color(0xFFE8D4A8),
+            Color(0xFFD4C098),
+            Color(0xFFC4B088),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          stops: [0.0, 0.3, 0.7, 1.0],
+        ),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: hidden ? const Color(0xFF9C27B0) : const Color(0xFF6B5344),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(120),
+            blurRadius: 6,
+            offset: const Offset(2, 3),
           ),
-          child: hidden
-              ? Center(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Icon(Icons.shield, color: Colors.white.withAlpha(60), size: 40),
-                      Icon(Icons.question_mark, color: Colors.white.withAlpha(180), size: 20),
-                    ],
+        ],
+      ),
+      child: hidden
+          ? Center(
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(Icons.shield, color: Colors.white.withAlpha(60), size: 40),
+            Icon(Icons.question_mark, color: Colors.white.withAlpha(180), size: 20),
+          ],
+        ),
+      )
+          : Stack(
+        children: [
+          // Eskitilmiş doku efekti
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _AgedPaperPainter(),
+            ),
+          ),
+          // Sol üst köşe sayı
+          Positioned(
+            top: 4,
+            left: 6,
+            child: Text(
+              _cardName(value),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                color: _getCardColor(value),
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withAlpha(50),
+                    offset: const Offset(1, 1),
+                    blurRadius: 1,
                   ),
-                )
-              : Stack(
-                  children: [
-                    // Eskitilmiş doku efekti
-                    Positioned.fill(
-                      child: CustomPaint(
-                        painter: _AgedPaperPainter(),
-                      ),
-                    ),
-                    // Sol üst köşe sayı
-                    Positioned(
-                      top: 4,
-                      left: 6,
-                      child: Text(
-                        _cardName(value),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: _getCardColor(value),
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withAlpha(50),
-                              offset: const Offset(1, 1),
-                              blurRadius: 1,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Sağ alt köşe sayı (ters)
-                    Positioned(
-                      bottom: 4,
-                      right: 6,
-                      child: Transform.rotate(
-                        angle: 3.14159,
-                        child: Text(
-                          _cardName(value),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                            color: _getCardColor(value),
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withAlpha(50),
-                                offset: const Offset(1, 1),
-                                blurRadius: 1,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Merkez - büyük sayı ve sembol
-                    Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Antik sembol
-                          Text(
-                            _getCardSymbol(value),
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: _getCardColor(value),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          // Büyük sayı
-                          Text(
-                            _cardName(value),
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              color: _getCardColor(value),
-                              letterSpacing: -1,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black.withAlpha(40),
-                                  offset: const Offset(1, 1),
-                                  blurRadius: 2,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Kenar süslemeleri - antik çerçeve
-                    Positioned.fill(
-                      child: Container(
-                        margin: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
-                          border: Border.all(
-                            color: const Color(0xFF8B7355).withAlpha(60),
-                            width: 1,
-                          ),
-                        ),
-                      ),
+                ],
+              ),
+            ),
+          ),
+          // Sağ alt köşe sayı (ters)
+          Positioned(
+            bottom: 4,
+            right: 6,
+            child: Transform.rotate(
+              angle: 3.14159,
+              child: Text(
+                _cardName(value),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: _getCardColor(value),
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withAlpha(50),
+                      offset: const Offset(1, 1),
+                      blurRadius: 1,
                     ),
                   ],
                 ),
+              ),
+            ),
+          ),
+          // Merkez - büyük sayı ve sembol
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Antik sembol
+                Text(
+                  _getCardSymbol(value),
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: _getCardColor(value),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                // Büyük sayı
+                Text(
+                  _cardName(value),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: _getCardColor(value),
+                    letterSpacing: -1,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withAlpha(40),
+                        offset: const Offset(1, 1),
+                        blurRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Kenar süslemeleri - antik çerçeve
+          Positioned.fill(
+            child: Container(
+              margin: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(
+                  color: const Color(0xFF8B7355).withAlpha(60),
+                  width: 1,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1171,12 +1171,12 @@ class _DiceGameState extends State<_DiceGame> with TickerProviderStateMixin {
           borderRadius: BorderRadius.circular(12),
           boxShadow: color != Colors.grey
               ? [
-                  BoxShadow(
-                    color: color.withAlpha(80),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
+            BoxShadow(
+              color: color.withAlpha(80),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ]
               : null,
         ),
         child: Row(
